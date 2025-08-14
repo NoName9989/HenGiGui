@@ -151,20 +151,20 @@ MyLib:SetTheme({ Accent = Color3.fromRGB(255,100,80) })
 
 
 -- =========================
--- Chức năng 2: CreateWindow
+-- Chức năng 2: CreateWindow (Full: PC + Mobile + Minimize thu nhỏ)
 -- =========================
 function UILib:CreateWindow(title, version, sizeX, sizeY)
     local theme = self._SelectedTheme
     local new = self._private.new
 
-    -- Tạo ScreenGui
+    -- ScreenGui
     local gui = new("ScreenGui", {
         Name = "UILibMain",
         Parent = game:GetService("CoreGui"),
         ResetOnSpawn = false
     })
 
-    -- Cửa sổ chính
+    -- Main Frame
     local mainFrame = new("Frame", {
         Size = UDim2.new(0, sizeX or 600, 0, sizeY or 400),
         Position = UDim2.new(0.5, -(sizeX or 600)/2, 0.5, -(sizeY or 400)/2),
@@ -175,8 +175,8 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         new("UICorner", { CornerRadius = theme.Corner })
     })
 
-    -- Đổ bóng
-    local shadow = new("Frame", {
+    -- Shadow
+    new("Frame", {
         Size = UDim2.new(1, 10, 1, 10),
         Position = UDim2.new(0, -5, 0, -5),
         BackgroundColor3 = theme.Shadow,
@@ -187,16 +187,16 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         new("UICorner", { CornerRadius = theme.Corner })
     })
 
-    -- Thanh topbar
+    -- Topbar
     local topbar = new("Frame", {
         Size = UDim2.new(1, 0, 0, 30),
         BackgroundColor3 = theme.Topbar,
         BorderSizePixel = 0,
         Parent = mainFrame
     })
-    new("UICorner", { CornerRadius = theme.Corner, Name="TopbarCorner" }, { Parent = topbar })
+    new("UICorner", { CornerRadius = theme.Corner }, { Parent = topbar })
 
-    -- Tiêu đề
+    -- Title
     new("TextLabel", {
         Text = (title or "Window") .. (version and (" - "..version) or ""),
         Size = UDim2.new(1, -60, 1, 0),
@@ -209,7 +209,7 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         Parent = topbar
     })
 
-    -- Nút minimize
+    -- Minimize Button
     local btnMin = new("TextButton", {
         Text = "–",
         Size = UDim2.new(0, 30, 1, 0),
@@ -221,7 +221,7 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         Parent = topbar
     })
 
-    -- Nút close
+    -- Close Button
     local btnClose = new("TextButton", {
         Text = "✕",
         Size = UDim2.new(0, 30, 1, 0),
@@ -233,7 +233,7 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         Parent = topbar
     })
 
-    -- Sidebar (tab buttons theo chiều dọc)
+    -- Sidebar
     local sidebar = new("Frame", {
         Size = UDim2.new(0, 150, 1, -30),
         Position = UDim2.new(0, 0, 0, 30),
@@ -254,7 +254,7 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         })
     })
 
-    -- Nội dung tab
+    -- Content Frame
     local contentFrame = new("Frame", {
         Size = UDim2.new(1, -160, 1, -30),
         Position = UDim2.new(0, 155, 0, 30),
@@ -265,42 +265,81 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         new("UICorner", { CornerRadius = theme.Corner })
     })
 
-    -- Container lưu tab pages
     local pagesFolder = new("Folder", { Parent = contentFrame })
 
-    -- Drag window
+    -- =========================
+    -- Drag support (PC + Mobile)
+    -- =========================
+    local UIS = game:GetService("UserInputService")
     local dragging, dragStart, startPos
+
+    local function startDrag(input)
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
+
+    local function updateDrag(input)
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+
     topbar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = mainFrame.Position
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            startDrag(input)
         end
     end)
+
     topbar.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateDrag(input)
         end
     end)
-    game:GetService("UserInputService").InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+
+    UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
         end
     end)
 
-    -- Sự kiện minimize/close
+    -- =========================
+    -- Minimize / Close
+    -- =========================
+    local originalSize = mainFrame.Size
+    local originalPos = mainFrame.Position
     local minimized = false
+
     btnMin.MouseButton1Click:Connect(function()
         minimized = not minimized
-        contentFrame.Visible = not minimized
-        sidebar.Visible = not minimized
+        if minimized then
+            -- Lưu lại vị trí & kích thước cũ
+            originalSize = mainFrame.Size
+            originalPos = mainFrame.Position
+            -- Ẩn nội dung
+            contentFrame.Visible = false
+            sidebar.Visible = false
+            -- Thu nhỏ và chuyển sang góc phải trên
+            mainFrame.Size = UDim2.new(0, 150, 0, 40)
+            mainFrame.Position = UDim2.new(1, -160, 0, 20)
+        else
+            -- Khôi phục
+            mainFrame.Size = originalSize
+            mainFrame.Position = originalPos
+            contentFrame.Visible = true
+            sidebar.Visible = true
+        end
     end)
+
     btnClose.MouseButton1Click:Connect(function()
         gui:Destroy()
     end)
 
-    -- Window object API
+    -- =========================
+    -- Window API
+    -- =========================
     local windowObj = {
         _Sidebar = sidebar,
         _Content = contentFrame,
@@ -317,10 +356,8 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         }
     }
 
-    -- Ghi nhớ để SetTheme runtime hoạt động
     self._ActiveWindow = { Frame = mainFrame, Topbar = topbar, Meta = windowObj.Meta }
 
-    -- Thêm hàm tạo Tab (tab dọc)
     function windowObj:CreateTab(tabName)
         local tabBtn = new("TextButton", {
             Size = UDim2.new(1, -10, 0, 30),
@@ -341,7 +378,6 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
             Parent = pagesFolder
         })
 
-        -- Click tab => ẩn tất cả page, hiện page này
         tabBtn.MouseButton1Click:Connect(function()
             for _, pg in pairs(pagesFolder:GetChildren()) do
                 pg.Visible = false
@@ -357,7 +393,6 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
             page.Visible = true
         end)
 
-        -- Auto chọn tab đầu tiên
         if #self._Tabs == 0 then
             tabBtn.BackgroundColor3 = theme.TabSelected
             tabBtn.TextColor3 = theme.TabTextSelected
@@ -366,7 +401,10 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
 
         table.insert(self._Tabs, { Name = tabName, Button = tabBtn, Page = page })
 
-        -- Trả về object tab để thêm widget sau này
+        -- Attach widget functions
+        if AttachButtonFunction then AttachButtonFunction(page, theme, new) end
+        if AttachToggleFunction then AttachToggleFunction(page, theme, new) end
+
         return page
     end
 
