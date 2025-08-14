@@ -1,413 +1,497 @@
--- library.lua
--- MyUI Library (lightweight Rayfield-like)
--- Author: [TÊN_BẠN]
--- License: MIT
+-- [[by HenGi]]
 
 local UILib = {}
 UILib._version = "0.1.0"
 
--- Default theme (thay đổi dễ)
+-- =========================
+-- Theme
+-- =========================
+-- Lưu các màu, font, bo góc ở một nơi để widget dùng chung.
 UILib.Theme = {
-    Background = Color3.fromRGB(30,30,30),
-    Header = Color3.fromRGB(18,18,18),
-    Panel = Color3.fromRGB(36,36,36),
-    Panel2 = Color3.fromRGB(46,46,46),
-    Accent = Color3.fromRGB(100,200,120),
-    Text = Color3.fromRGB(230,230,230),
-    Font = Enum.Font.Gotham,
-    Corner = UDim.new(0,6)
+    Default = {
+        TextFont = Enum.Font.Gotham, -- hoặc "Default" nếu muốn giữ nguyên
+        TextColor = Color3.fromRGB(240,240,240),
+
+        Background = Color3.fromRGB(25,25,25),
+        Topbar = Color3.fromRGB(34,34,34),
+        Shadow = Color3.fromRGB(18,18,18),
+
+        Panel = Color3.fromRGB(36,36,36),
+        Panel2 = Color3.fromRGB(46,46,46),
+
+        Accent = Color3.fromRGB(100,200,140),
+        AccentDark = Color3.fromRGB(84,168,116),
+
+        TabBackground = Color3.fromRGB(80,80,80),
+        TabSelected = Color3.fromRGB(210,210,210),
+        TabText = Color3.fromRGB(240,240,240),
+        TabTextSelected = Color3.fromRGB(50,50,50),
+
+        NotificationBackground = Color3.fromRGB(20,20,20),
+        NotificationActionBG = Color3.fromRGB(230,230,230),
+
+        InputBackground = Color3.fromRGB(30,30,30),
+        InputStroke = Color3.fromRGB(65,65,65),
+        Placeholder = Color3.fromRGB(170,170,170),
+
+        Corner = UDim.new(0,8), -- bo góc chuẩn Rayfield-y
+        TextSize = 14
+    },
+
+    Light = {
+        TextFont = Enum.Font.Gotham,
+        TextColor = Color3.fromRGB(40,40,40),
+
+        Background = Color3.fromRGB(250,250,250),
+        Topbar = Color3.fromRGB(232,232,232),
+        Shadow = Color3.fromRGB(220,220,220),
+
+        Panel = Color3.fromRGB(235,235,235),
+        Panel2 = Color3.fromRGB(220,220,220),
+
+        Accent = Color3.fromRGB(0,142,208),
+        AccentDark = Color3.fromRGB(0,120,180),
+
+        TabBackground = Color3.fromRGB(220,220,220),
+        TabSelected = Color3.fromRGB(0,142,208),
+        TabText = Color3.fromRGB(240,240,240),
+        TabTextSelected = Color3.fromRGB(20,20,20),
+
+        NotificationBackground = Color3.fromRGB(240,240,240),
+        NotificationActionBG = Color3.fromRGB(20,20,20),
+
+        InputBackground = Color3.fromRGB(255,255,255),
+        InputStroke = Color3.fromRGB(200,200,200),
+        Placeholder = Color3.fromRGB(140,140,140),
+
+        Corner = UDim.new(0,8),
+        TextSize = 14
+    }
 }
 
--- State lưu tạm (global cho UI này)
-UILib.State = {
-    Visible = true,
-    DefaultWindow = nil
-}
+-- Lưu trạng thái theme hiện tại (tham chiếu)
+UILib._SelectedTheme = UILib.Theme.Default
 
--- helper tạo instance nhanh
+-- =========================================
+-- Helper: new(className, props, children)
+-- Tạo Instance nhanh, an toàn (pcall) và set children
+-- =========================================
 local function new(className, props, children)
     local inst = Instance.new(className)
     if props then
-        for k,v in pairs(props) do
-            -- set property safe
+        for k, v in pairs(props) do
+            -- set property an toàn để tránh error nếu property không hợp lệ
             pcall(function() inst[k] = v end)
         end
     end
     if children then
-        for _,c in ipairs(children) do
-            c.Parent = inst
+        for _, child in ipairs(children) do
+            child.Parent = inst
         end
     end
     return inst
 end
 
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
+-- Expose helper (nếu bạn cần dùng từ ngoài module)
+UILib._private = {
+    new = new
+}
 
--- Change theme at runtime
-function UILib:SetTheme(t)
-    for k,v in pairs(t) do
-        if self.Theme[k] ~= nil then
-            self.Theme[k] = v
+-- =========================================
+-- SetTheme(themeTable)
+-- Gọi để cập nhật màu chủ đề runtime. 
+-- Nếu đã có window hiện tại (UILib._ActiveWindow), hàm sẽ apply một số thay đổi cơ bản.
+-- =========================================
+function UILib:SetTheme(themeTable)
+    -- chỉ ghi những trường tồn tại trong theme mặc định
+    for k, v in pairs(themeTable) do
+        for mode, _ in pairs(self.Theme) do -- cập nhật trên cả Default/Light nếu key phù hợp
+            if self.Theme[mode][k] ~= nil then
+                self.Theme[mode][k] = v
+            end
         end
     end
-    -- apply to existing window if present
-    local w = self.State.DefaultWindow
-    if w then
-        w.Frame.BackgroundColor3 = self.Theme.Background
-        w.Header.BackgroundColor3 = self.Theme.Header
-        w.Content.BackgroundColor3 = self.Theme.Panel
-        -- We don't iterate all children for perf — you can re-create or expand later.
+
+    -- cập nhật tham chiếu theme đang dùng nếu cần
+    self._SelectedTheme = self.Theme.Default
+
+    -- apply nhanh cho window đang có (nếu bạn đã tạo window trước đó)
+    local win = self._ActiveWindow
+    if win and win.Frame and win.Meta and win.Meta.ApplyTheme then
+        -- nếu window cung cấp hàm apply theme, gọi để cập nhật toàn diện
+        pcall(function() win.Meta:ApplyTheme(self._SelectedTheme) end)
+    else
+        -- fallback: cập nhật một vài phần cơ bản nếu có
+        if win and win.Frame then
+            pcall(function()
+                win.Frame.BackgroundColor3 = self._SelectedTheme.Background
+                if win.Topbar then
+                    win.Topbar.BackgroundColor3 = self._SelectedTheme.Topbar
+                end
+            end)
+        end
     end
 end
 
--- Create window (returns window object)
-function UILib:CreateWindow(title, size) -- size = Vector2
-    local player = Players.LocalPlayer
-    assert(player, "CreateWindow must be called from LocalScript")
+-- =========================
+-- Ví dụ cách dùng (comment - copy vào LocalScript khi test)
+-- =========================
+--[[
+local MyLib = require(game.ReplicatedStorage:WaitForChild("MyUILib"))
+-- Khi đã require, bạn có thể chỉnh theme runtime:
+MyLib:SetTheme({ Accent = Color3.fromRGB(255,100,80) })
+-- Lưu ý: phần ApplyTheme chi tiết sẽ nằm trong CreateWindow (sau này mình gửi).
+]]
 
-    local gui = new("ScreenGui", {Name = "MyUILib_UI", ResetOnSpawn = false})
-    gui.Parent = player:WaitForChild("PlayerGui")
+-- Chức năng 1 hoàn tất: skeleton + theme + helper
+-- Tiếp theo: trong tin nhắn sau mình sẽ gửi "Chức năng 2: CreateWindow (Frame + Topbar + drag + minimize/close)" để bạn dán nối vào (trước dòng return).
 
-    local frame = new("Frame", {
-        Size = UDim2.fromOffset(size.X, size.Y),
-        Position = UDim2.new(0.5, -size.X/2, 0.5, -size.Y/2),
-        BackgroundColor3 = self.Theme.Background,
+
+
+
+
+-- =========================
+-- Chức năng 2: CreateWindow
+-- =========================
+function UILib:CreateWindow(title, version, sizeX, sizeY)
+    local theme = self._SelectedTheme
+    local new = self._private.new
+
+    -- Tạo ScreenGui
+    local gui = new("ScreenGui", {
+        Name = "UILibMain",
+        Parent = game:GetService("CoreGui"),
+        ResetOnSpawn = false
+    })
+
+    -- Cửa sổ chính
+    local mainFrame = new("Frame", {
+        Size = UDim2.new(0, sizeX or 600, 0, sizeY or 400),
+        Position = UDim2.new(0.5, -(sizeX or 600)/2, 0.5, -(sizeY or 400)/2),
+        BackgroundColor3 = theme.Background,
         BorderSizePixel = 0,
         Parent = gui
+    }, {
+        new("UICorner", { CornerRadius = theme.Corner })
     })
 
-    local frameCorner = new("UICorner", {CornerRadius = self.Theme.Corner}, { })
-    frameCorner.Parent = frame
-
-    local header = new("Frame", {
-        Size = UDim2.new(1,0,0,28),
-        BackgroundColor3 = self.Theme.Header,
+    -- Đổ bóng
+    local shadow = new("Frame", {
+        Size = UDim2.new(1, 10, 1, 10),
+        Position = UDim2.new(0, -5, 0, -5),
+        BackgroundColor3 = theme.Shadow,
         BorderSizePixel = 0,
-        Parent = frame
+        ZIndex = 0,
+        Parent = mainFrame
+    }, {
+        new("UICorner", { CornerRadius = theme.Corner })
     })
 
-    local headerCorner = new("UICorner", {CornerRadius = self.Theme.Corner})
-    headerCorner.Parent = header
+    -- Thanh topbar
+    local topbar = new("Frame", {
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundColor3 = theme.Topbar,
+        BorderSizePixel = 0,
+        Parent = mainFrame
+    })
+    new("UICorner", { CornerRadius = theme.Corner, Name="TopbarCorner" }, { Parent = topbar })
 
-    local titleLabel = new("TextLabel", {
-        Size = UDim2.new(1, -90, 1, 0),
-        Position = UDim2.fromOffset(8,0),
+    -- Tiêu đề
+    new("TextLabel", {
+        Text = (title or "Window") .. (version and (" - "..version) or ""),
+        Size = UDim2.new(1, -60, 1, 0),
+        Position = UDim2.new(0, 10, 0, 0),
         BackgroundTransparency = 1,
-        Text = title or "Window",
-        TextColor3 = self.Theme.Text,
-        Font = self.Theme.Font,
-        TextSize = 14,
+        TextColor3 = theme.TextColor,
+        Font = theme.TextFont,
+        TextSize = theme.TextSize,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = header
+        Parent = topbar
     })
 
-    local btnClose = new("TextButton", {
-        Size = UDim2.fromOffset(28, 20),
-        Position = UDim2.new(1, -34, 0.5, -10),
-        BackgroundTransparency = 1,
-        Text = "✕",
-        TextColor3 = self.Theme.Text,
-        Font = self.Theme.Font,
-        TextSize = 16,
-        Parent = header
-    })
-
+    -- Nút minimize
     local btnMin = new("TextButton", {
-        Size = UDim2.fromOffset(28, 20),
-        Position = UDim2.new(1, -64, 0.5, -10),
+        Text = "–",
+        Size = UDim2.new(0, 30, 1, 0),
+        Position = UDim2.new(1, -60, 0, 0),
         BackgroundTransparency = 1,
-        Text = "—",
-        TextColor3 = self.Theme.Text,
-        Font = self.Theme.Font,
-        TextSize = 16,
-        Parent = header
+        TextColor3 = theme.TextColor,
+        Font = theme.TextFont,
+        TextSize = 20,
+        Parent = topbar
     })
 
-    local content = new("Frame", {
-        Size = UDim2.new(1,0,1,-28),
-        Position = UDim2.fromOffset(0,28),
-        BackgroundColor3 = self.Theme.Panel,
+    -- Nút close
+    local btnClose = new("TextButton", {
+        Text = "✕",
+        Size = UDim2.new(0, 30, 1, 0),
+        Position = UDim2.new(1, -30, 0, 0),
+        BackgroundTransparency = 1,
+        TextColor3 = theme.TextColor,
+        Font = theme.TextFont,
+        TextSize = 20,
+        Parent = topbar
+    })
+
+    -- Sidebar (tab buttons theo chiều dọc)
+    local sidebar = new("Frame", {
+        Size = UDim2.new(0, 150, 1, -30),
+        Position = UDim2.new(0, 0, 0, 30),
+        BackgroundColor3 = theme.Panel,
         BorderSizePixel = 0,
-        Parent = frame
+        Parent = mainFrame
+    }, {
+        new("UICorner", { CornerRadius = theme.Corner }),
+        new("UIListLayout", { 
+            FillDirection = Enum.FillDirection.Vertical, 
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 5)
+        }),
+        new("UIPadding", {
+            PaddingTop = UDim.new(0, 5),
+            PaddingLeft = UDim.new(0, 5),
+            PaddingRight = UDim.new(0, 5)
+        })
     })
 
-    local contentCorner = new("UICorner", {CornerRadius = self.Theme.Corner})
-    contentCorner.Parent = content
-
-    local tabbar = new("Frame", {
-        Size = UDim2.new(1,0,0,28),
-        Position = UDim2.fromOffset(0,0),
-        BackgroundColor3 = self.Theme.Panel2,
+    -- Nội dung tab
+    local contentFrame = new("Frame", {
+        Size = UDim2.new(1, -160, 1, -30),
+        Position = UDim2.new(0, 155, 0, 30),
+        BackgroundColor3 = theme.Panel2,
         BorderSizePixel = 0,
-        Parent = content
-    })
-    local tabbarLayout = new("UIListLayout", {FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0,6)})
-    tabbarLayout.Parent = tabbar
-    local tabbarPadding = new("UIPadding", {PaddingLeft = UDim.new(0,6)})
-    tabbarPadding.Parent = tabbar
-
-    local pagesHolder = new("Frame", {
-        Size = UDim2.new(1,0,1,-28),
-        Position = UDim2.fromOffset(0,28),
-        BackgroundTransparency = 1,
-        Parent = content
+        Parent = mainFrame
+    }, {
+        new("UICorner", { CornerRadius = theme.Corner })
     })
 
-    local pagesUILayout = new("UIListLayout", {Padding = UDim.new(0,8), SortOrder = Enum.SortOrder.LayoutOrder})
-    pagesUILayout.Parent = pagesHolder
-    local pagesPadding = new("UIPadding", {PaddingLeft = UDim.new(0,8), PaddingTop = UDim.new(0,8), PaddingRight = UDim.new(0,8)})
-    pagesPadding.Parent = pagesHolder
+    -- Container lưu tab pages
+    local pagesFolder = new("Folder", { Parent = contentFrame })
 
-    -- Dragging support (header draggable)
-    do
-        local dragging = false
-        local dragStart, startPos = nil, nil
-        header.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                dragStart = input.Position
-                startPos = frame.Position
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then dragging = false end
-                end)
-            end
-        end)
-        UIS.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local delta = input.Position - dragStart
-                frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            end
-        end)
-    end
-
-    -- minimize/close behavior
-    local minimized = false
-    btnMin.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        pagesHolder.Visible = not minimized
-        tabbar.Visible = not minimized
-        -- optional shrink frame
-        if minimized then
-            frame.Size = UDim2.fromOffset(size.X, 28)
-        else
-            frame.Size = UDim2.fromOffset(size.X, size.Y)
-        end
-    end)
-
-    btnClose.MouseButton1Click:Connect(function()
-        gui:Destroy()
-    end)
-
-    local window = {
-        Gui = gui,
-        Frame = frame,
-        Header = header,
-        Title = titleLabel,
-        Content = content,
-        TabBar = tabbar,
-        PagesHolder = pagesHolder,
-        Tabs = {},
-        Size = size
-    }
-
-    -- set as default one for theme updates convenience
-    self.State.DefaultWindow = window
-
-    return window
-end
-
--- Create Tab (returns page frame)
-function UILib:CreateTab(window, tabName)
-    local btn = new("TextButton", {
-        Size = UDim2.fromOffset(110, 22),
-        BackgroundTransparency = 1,
-        Text = tabName,
-        TextColor3 = self.Theme.Text,
-        Font = self.Theme.Font,
-        TextSize = 14,
-        Parent = window.TabBar
-    })
-    local page = new("ScrollingFrame", {
-        Size = UDim2.new(1,0,1,0),
-        CanvasSize = UDim2.new(0,0,0,0),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        BackgroundTransparency = 1,
-        ScrollBarThickness = 6,
-        Visible = false,
-        Parent = window.PagesHolder
-    })
-    local layout = new("UIListLayout", {Padding = UDim.new(0,8), SortOrder = Enum.SortOrder.LayoutOrder})
-    layout.Parent = page
-    local padding = new("UIPadding", {PaddingTop = UDim.new(0,8), PaddingLeft = UDim.new(0,8), PaddingRight = UDim.new(0,8)})
-    padding.Parent = page
-
-    table.insert(window.Tabs, {Name = tabName, Button = btn, Page = page})
-
-    btn.MouseButton1Click:Connect(function()
-        for _,t in ipairs(window.Tabs) do
-            t.Page.Visible = (t == window.Tabs[#window.Tabs] and false) -- noop
-        end
-        -- switch properly:
-        for _, t in ipairs(window.Tabs) do
-            t.Page.Visible = (t.Name == tabName)
-            t.Button.BackgroundColor3 = t.Page.Visible and self.Theme.Panel or Color3.fromRGB(0,0,0,0)
-        end
-    end)
-
-    -- if first tab, activate
-    if #window.Tabs == 1 then
-        for _, t in ipairs(window.Tabs) do
-            t.Page.Visible = (t.Name == tabName)
-        end
-    end
-
-    return page
-end
-
--- Basic widgets: Button, Toggle, Slider
-function UILib:CreateButton(page, text, callback)
-    local btn = new("TextButton", {
-        Size = UDim2.new(1, 0, 0, 32),
-        BackgroundColor3 = self.Theme.Panel2,
-        Text = text or "Button",
-        TextColor3 = self.Theme.Text,
-        Font = self.Theme.Font,
-        TextSize = 14,
-        BorderSizePixel = 0,
-        Parent = page
-    })
-    new("UICorner", {CornerRadius = self.Theme.Corner}).Parent = btn
-
-    btn.MouseButton1Click:Connect(function()
-        if type(callback) == "function" then
-            task.spawn(callback)
-        end
-    end)
-    return btn
-end
-
-function UILib:CreateToggle(page, label, default, onChanged)
-    local state = default and true or false
-    local container = new("Frame", {Size = UDim2.new(1,0,0,34), BackgroundTransparency = 1, Parent = page})
-    local left = new("TextLabel", {
-        Size = UDim2.new(1, -70, 1, 0),
-        BackgroundTransparency = 1,
-        Text = label or "Toggle",
-        TextColor3 = self.Theme.Text,
-        Font = self.Theme.Font,
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = container
-    })
-    local btn = new("TextButton", {
-        Size = UDim2.fromOffset(60, 26),
-        Position = UDim2.new(1, -64, 0.5, -13),
-        BackgroundColor3 = state and self.Theme.Accent or Color3.fromRGB(90,90,90),
-        Text = state and "ON" or "OFF",
-        TextColor3 = self.Theme.Text,
-        Font = self.Theme.Font,
-        TextSize = 12,
-        Parent = container
-    })
-    new("UICorner", {CornerRadius = self.Theme.Corner}).Parent = btn
-
-    local function set(s)
-        state = s and true or false
-        btn.Text = state and "ON" or "OFF"
-        btn.BackgroundColor3 = state and self.Theme.Accent or Color3.fromRGB(90,90,90)
-        if type(onChanged) == "function" then task.spawn(onChanged, state) end
-    end
-
-    btn.MouseButton1Click:Connect(function()
-        set(not state)
-    end)
-
-    set(state)
-    return {
-        Get = function() return state end,
-        Set = set,
-        Frame = container
-    }
-end
-
-function UILib:CreateSlider(page, label, min, max, default, step, onChanged)
-    min = tonumber(min) or 0
-    max = tonumber(max) or 100
-    step = tonumber(step) or 1
-    local value = tonumber(default) or min
-
-    local frame = new("Frame", {Size = UDim2.new(1,0,0,56), BackgroundTransparency = 1, Parent = page})
-    local lbl = new("TextLabel", {
-        Size = UDim2.new(1,0,0,18),
-        BackgroundTransparency = 1,
-        Text = (label or "Slider")..": "..tostring(value),
-        TextColor3 = self.Theme.Text,
-        Font = self.Theme.Font,
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = frame
-    })
-    local bar = new("Frame", {
-        Size = UDim2.new(1,0,0,12),
-        Position = UDim2.fromOffset(0,24),
-        BackgroundColor3 = Color3.fromRGB(60,60,60),
-        Parent = frame
-    })
-    new("UICorner", {CornerRadius = UDim.new(0,6)}).Parent = bar
-
-    local fill = new("Frame", {Size = UDim2.new((value-min)/(max-min), 0, 1, 0), BackgroundColor3 = self.Theme.Accent, Parent = bar})
-    new("UICorner", {CornerRadius = UDim.new(0,6)}).Parent = fill
-
-    local dragging = false
-    local function applyFromX(x)
-        local rel = math.clamp((x - bar.AbsolutePosition.X) / math.max(1, bar.AbsoluteSize.X), 0, 1)
-        local raw = min + (max - min) * rel
-        local stepped = math.floor((raw/step) + 0.5) * step
-        value = math.clamp(stepped, min, max)
-        fill.Size = UDim2.new((value-min)/(max-min), 0, 1, 0)
-        lbl.Text = (label or "Slider")..": "..tostring(value)
-        if type(onChanged) == "function" then task.spawn(onChanged, value) end
-    end
-
-    bar.InputBegan:Connect(function(input)
+    -- Drag window
+    local dragging, dragStart, startPos
+    topbar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
-            applyFromX(input.Position.X)
+            dragStart = input.Position
+            startPos = mainFrame.Position
         end
     end)
-    UIS.InputChanged:Connect(function(input)
+    topbar.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            applyFromX(input.Position.X)
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
-    UIS.InputEnded:Connect(function(input)
+    game:GetService("UserInputService").InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
     end)
 
-    -- init positioning (safe call because AbsolutePosition may not be ready immediately)
-    task.defer(function()
-        applyFromX(bar.AbsolutePosition.X + bar.AbsoluteSize.X * ((value-min)/(max-min)))
+    -- Sự kiện minimize/close
+    local minimized = false
+    btnMin.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        contentFrame.Visible = not minimized
+        sidebar.Visible = not minimized
+    end)
+    btnClose.MouseButton1Click:Connect(function()
+        gui:Destroy()
     end)
 
-    return {
-        Get = function() return value end,
-        Set = function(v) value = math.clamp(tonumber(v) or value, min, max); task.spawn(function() applyFromX(bar.AbsolutePosition.X + bar.AbsoluteSize.X * ((value-min)/(max-min))) end) end,
-        Frame = frame
+    -- Window object API
+    local windowObj = {
+        _Sidebar = sidebar,
+        _Content = contentFrame,
+        _Pages = pagesFolder,
+        _Theme = theme,
+        _Tabs = {},
+        Meta = {
+            ApplyTheme = function(_, th)
+                mainFrame.BackgroundColor3 = th.Background
+                topbar.BackgroundColor3 = th.Topbar
+                sidebar.BackgroundColor3 = th.Panel
+                contentFrame.BackgroundColor3 = th.Panel2
+            end
+        }
     }
+
+    -- Ghi nhớ để SetTheme runtime hoạt động
+    self._ActiveWindow = { Frame = mainFrame, Topbar = topbar, Meta = windowObj.Meta }
+
+    -- Thêm hàm tạo Tab (tab dọc)
+    function windowObj:CreateTab(tabName)
+        local tabBtn = new("TextButton", {
+            Size = UDim2.new(1, -10, 0, 30),
+            BackgroundColor3 = theme.TabBackground,
+            TextColor3 = theme.TabText,
+            Font = theme.TextFont,
+            TextSize = theme.TextSize,
+            Text = tabName,
+            Parent = sidebar
+        }, {
+            new("UICorner", { CornerRadius = theme.Corner })
+        })
+
+        local page = new("Frame", {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Visible = false,
+            Parent = pagesFolder
+        })
+
+        -- Click tab => ẩn tất cả page, hiện page này
+        tabBtn.MouseButton1Click:Connect(function()
+            for _, pg in pairs(pagesFolder:GetChildren()) do
+                pg.Visible = false
+            end
+            for _, btn in pairs(sidebar:GetChildren()) do
+                if btn:IsA("TextButton") then
+                    btn.BackgroundColor3 = theme.TabBackground
+                    btn.TextColor3 = theme.TabText
+                end
+            end
+            tabBtn.BackgroundColor3 = theme.TabSelected
+            tabBtn.TextColor3 = theme.TabTextSelected
+            page.Visible = true
+        end)
+
+        -- Auto chọn tab đầu tiên
+        if #self._Tabs == 0 then
+            tabBtn.BackgroundColor3 = theme.TabSelected
+            tabBtn.TextColor3 = theme.TabTextSelected
+            page.Visible = true
+        end
+
+        table.insert(self._Tabs, { Name = tabName, Button = tabBtn, Page = page })
+
+        -- Trả về object tab để thêm widget sau này
+        return page
+    end
+
+    return windowObj
 end
 
--- Simple helper to create basic sample window quickly
-function UILib:CreateSample()
-    local win = self:CreateWindow("MyUI Sample", Vector2.new(360, 360))
-    local t1 = self:CreateTab(win, "Main")
-    local t2 = self:CreateTab(win, "Settings")
-    self:CreateButton(t1, "Say Hello", function() print("Hello!") end)
-    local togg = self:CreateToggle(t1, "God Mode", false, function(v) print("God:", v) end)
-    local s = self:CreateSlider(t2, "Volume", 0, 100, 35, 5, function(v) print("Vol:", v) end)
-    return win
+-- =========================
+-- Chức năng 3: CreateButton
+-- =========================
+-- Hàm này được thêm vào từng Tab (page) chứ không phải UILib trực tiếp.
+-- Tab ở đây là `page` trả về từ Window:CreateTab()
+
+-- Gói hàm này vào tiện ích để attach vào mỗi page
+local function AttachButtonFunction(page, theme, new)
+    function page:CreateButton(text, callback)
+        local btn = new("TextButton", {
+            Size = UDim2.new(0, 200, 0, 35),
+            BackgroundColor3 = theme.Accent,
+            Text = text or "Button",
+            TextColor3 = theme.TextColor,
+            Font = theme.TextFont,
+            TextSize = theme.TextSize,
+            AutoButtonColor = false,
+            Parent = page
+        }, {
+            new("UICorner", { CornerRadius = theme.Corner })
+        })
+
+        -- Hover effect
+        btn.MouseEnter:Connect(function()
+            btn.BackgroundColor3 = theme.AccentDark
+        end)
+        btn.MouseLeave:Connect(function()
+            btn.BackgroundColor3 = theme.Accent
+        end)
+
+        -- Click event
+        btn.MouseButton1Click:Connect(function()
+            if callback then
+                pcall(callback)
+            end
+        end)
+
+        return btn
+    end
 end
 
-return UILib
+-- =========================
+-- Chức năng 4: CreateToggle
+-- =========================
+local function AttachToggleFunction(page, theme, new)
+    function page:CreateToggle(text, default, callback)
+        local state = default or false
+
+        -- Container
+        local toggleFrame = new("Frame", {
+            Size = UDim2.new(0, 200, 0, 35),
+            BackgroundColor3 = theme.Panel,
+            BorderSizePixel = 0,
+            Parent = page
+        }, {
+            new("UICorner", { CornerRadius = theme.Corner })
+        })
+
+        -- Label
+        new("TextLabel", {
+            Size = UDim2.new(1, -50, 1, 0),
+            Position = UDim2.new(0, 10, 0, 0),
+            BackgroundTransparency = 1,
+            Text = text or "Toggle",
+            TextColor3 = theme.TextColor,
+            Font = theme.TextFont,
+            TextSize = theme.TextSize,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = toggleFrame
+        })
+
+        -- Nút trượt
+        local switch = new("Frame", {
+            Size = UDim2.new(0, 40, 0, 20),
+            Position = UDim2.new(1, -45, 0.5, -10),
+            BackgroundColor3 = state and theme.Accent or theme.InputStroke,
+            BorderSizePixel = 0,
+            Parent = toggleFrame
+        }, {
+            new("UICorner", { CornerRadius = UDim.new(1, 0) })
+        })
+
+        -- Nút tròn bên trong
+        local knob = new("Frame", {
+            Size = UDim2.new(0, 16, 0, 16),
+            Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
+            BackgroundColor3 = theme.TextColor,
+            BorderSizePixel = 0,
+            Parent = switch
+        }, {
+            new("UICorner", { CornerRadius = UDim.new(1, 0) })
+        })
+
+        -- Hàm cập nhật giao diện toggle
+        local function updateVisual()
+            switch.BackgroundColor3 = state and theme.Accent or theme.InputStroke
+            knob.Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+        end
+
+        -- Click toggle
+        toggleFrame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                state = not state
+                updateVisual()
+                if callback then
+                    pcall(callback, state)
+                end
+            end
+        end)
+
+        return {
+            Set = function(_, val)
+                state = val
+                updateVisual()
+            end,
+            Get = function()
+                return state
+            end
+        }
+    end
+end
+    return UILib
