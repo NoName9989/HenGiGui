@@ -279,12 +279,16 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         startPos = mainFrame.Position
     end
 
-    local function updateDrag(input)
+        local function updateDrag(input)
         local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(
+        local newPos = UDim2.new(
             startPos.X.Scale, startPos.X.Offset + delta.X,
             startPos.Y.Scale, startPos.Y.Offset + delta.Y
         )
+        mainFrame.Position = newPos
+        if minimized then
+            minimizedPos = newPos -- lưu vị trí khi đang thu nhỏ
+        end
     end
 
     topbar.InputBegan:Connect(function(input)
@@ -311,28 +315,32 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
     local originalSize = mainFrame.Size
     local originalPos = mainFrame.Position
     local minimized = false
+    local minimizedPos
 
-    btnMin.MouseButton1Click:Connect(function()
+        btnMin.MouseButton1Click:Connect(function()
         minimized = not minimized
         if minimized then
-            -- Lưu lại vị trí & kích thước cũ
+            -- Lưu lại kích thước & vị trí gốc
             originalSize = mainFrame.Size
             originalPos = mainFrame.Position
-            -- Ẩn nội dung
             contentFrame.Visible = false
             sidebar.Visible = false
-            -- Thu nhỏ và chuyển sang góc phải trên
             mainFrame.Size = UDim2.new(0, 150, 0, 40)
-            mainFrame.Position = UDim2.new(1, -160, 0, 20)
+            -- Nếu đã có vị trí thu nhỏ thì giữ nguyên, chưa có thì đặt mặc định
+            mainFrame.Position = minimizedPos or UDim2.new(1, -160, 0, 20)
         else
-            -- Khôi phục
+            -- Khi phóng to lại, tính thêm độ lệch vị trí thu nhỏ
+            local deltaX = mainFrame.Position.X.Offset - (minimizedPos and minimizedPos.X.Offset or -160)
+            local deltaY = mainFrame.Position.Y.Offset - (minimizedPos and minimizedPos.Y.Offset or 20)
             mainFrame.Size = originalSize
-            mainFrame.Position = originalPos
+            mainFrame.Position = UDim2.new(
+                originalPos.X.Scale, originalPos.X.Offset + deltaX,
+                originalPos.Y.Scale, originalPos.Y.Offset + deltaY
+            )
             contentFrame.Visible = true
             sidebar.Visible = true
         end
     end)
-
     btnClose.MouseButton1Click:Connect(function()
         gui:Destroy()
     end)
