@@ -148,10 +148,132 @@ MyLib:SetTheme({ Accent = Color3.fromRGB(255,100,80) })
 
 
 
+-- =========================
+-- Chức năng 2: CreateButton
+-- =========================
+-- Hàm này được thêm vào từng Tab (page) chứ không phải UILib trực tiếp.
+-- Tab ở đây là `page` trả về từ Window:CreateTab()
+
+-- Gói hàm này vào tiện ích để attach vào mỗi page
+local function AttachButtonFunction(page, theme, new)
+    function page:CreateButton(text, callback)
+        local btn = new("TextButton", {
+            Size = UDim2.new(0, 200, 0, 35),
+            BackgroundColor3 = theme.Accent,
+            Text = text or "Button",
+            TextColor3 = theme.TextColor,
+            Font = theme.TextFont,
+            TextSize = theme.TextSize,
+            AutoButtonColor = false,
+            Parent = page
+        }, {
+            new("UICorner", { CornerRadius = theme.Corner })
+        })
+
+        -- Hover effect
+        btn.MouseEnter:Connect(function()
+            btn.BackgroundColor3 = theme.AccentDark
+        end)
+        btn.MouseLeave:Connect(function()
+            btn.BackgroundColor3 = theme.Accent
+        end)
+
+        -- Click event
+        btn.MouseButton1Click:Connect(function()
+            if callback then
+                pcall(callback)
+            end
+        end)
+
+        return btn
+    end
+end
+
+-- =========================
+-- Chức năng 3: CreateToggle
+-- =========================
+local function AttachToggleFunction(page, theme, new)
+    function page:CreateToggle(text, default, callback)
+        local state = default or false
+
+        -- Container
+        local toggleFrame = new("Frame", {
+            Size = UDim2.new(0, 200, 0, 35),
+            BackgroundColor3 = theme.Panel,
+            BorderSizePixel = 0,
+            Parent = page
+        }, {
+            new("UICorner", { CornerRadius = theme.Corner })
+        })
+
+        -- Label
+        new("TextLabel", {
+            Size = UDim2.new(1, -50, 1, 0),
+            Position = UDim2.new(0, 10, 0, 0),
+            BackgroundTransparency = 1,
+            Text = text or "Toggle",
+            TextColor3 = theme.TextColor,
+            Font = theme.TextFont,
+            TextSize = theme.TextSize,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = toggleFrame
+        })
+
+        -- Nút trượt
+        local switch = new("Frame", {
+            Size = UDim2.new(0, 40, 0, 20),
+            Position = UDim2.new(1, -45, 0.5, -10),
+            BackgroundColor3 = state and theme.Accent or theme.InputStroke,
+            BorderSizePixel = 0,
+            Parent = toggleFrame
+        }, {
+            new("UICorner", { CornerRadius = UDim.new(1, 0) })
+        })
+
+        -- Nút tròn bên trong
+        local knob = new("Frame", {
+            Size = UDim2.new(0, 16, 0, 16),
+            Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
+            BackgroundColor3 = theme.TextColor,
+            BorderSizePixel = 0,
+            Parent = switch
+        }, {
+            new("UICorner", { CornerRadius = UDim.new(1, 0) })
+        })
+
+        -- Hàm cập nhật giao diện toggle
+        local function updateVisual()
+            switch.BackgroundColor3 = state and theme.Accent or theme.InputStroke
+            knob.Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+        end
+
+        -- Click toggle
+        toggleFrame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                state = not state
+                updateVisual()
+                if callback then
+                    pcall(callback, state)
+                end
+            end
+        end)
+
+        return {
+            Set = function(_, val)
+                state = val
+                updateVisual()
+            end,
+            Get = function()
+                return state
+            end
+        }
+    end
+end
+
 
 
 -- =========================
--- Chức năng 2: CreateWindow (Full + Mobile drag + Minimize nhớ vị trí box nhỏ)
+-- Chức năng 4: CreateWindow (Full + Mobile drag + Minimize nhớ vị trí box nhỏ)
 -- =========================
 function UILib:CreateWindow(title, version, sizeX, sizeY)
     local theme = self._SelectedTheme
@@ -405,125 +527,4 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
     return windowObj
 end
 
--- =========================
--- Chức năng 3: CreateButton
--- =========================
--- Hàm này được thêm vào từng Tab (page) chứ không phải UILib trực tiếp.
--- Tab ở đây là `page` trả về từ Window:CreateTab()
-
--- Gói hàm này vào tiện ích để attach vào mỗi page
-local function AttachButtonFunction(page, theme, new)
-    function page:CreateButton(text, callback)
-        local btn = new("TextButton", {
-            Size = UDim2.new(0, 200, 0, 35),
-            BackgroundColor3 = theme.Accent,
-            Text = text or "Button",
-            TextColor3 = theme.TextColor,
-            Font = theme.TextFont,
-            TextSize = theme.TextSize,
-            AutoButtonColor = false,
-            Parent = page
-        }, {
-            new("UICorner", { CornerRadius = theme.Corner })
-        })
-
-        -- Hover effect
-        btn.MouseEnter:Connect(function()
-            btn.BackgroundColor3 = theme.AccentDark
-        end)
-        btn.MouseLeave:Connect(function()
-            btn.BackgroundColor3 = theme.Accent
-        end)
-
-        -- Click event
-        btn.MouseButton1Click:Connect(function()
-            if callback then
-                pcall(callback)
-            end
-        end)
-
-        return btn
-    end
-end
-
--- =========================
--- Chức năng 4: CreateToggle
--- =========================
-local function AttachToggleFunction(page, theme, new)
-    function page:CreateToggle(text, default, callback)
-        local state = default or false
-
-        -- Container
-        local toggleFrame = new("Frame", {
-            Size = UDim2.new(0, 200, 0, 35),
-            BackgroundColor3 = theme.Panel,
-            BorderSizePixel = 0,
-            Parent = page
-        }, {
-            new("UICorner", { CornerRadius = theme.Corner })
-        })
-
-        -- Label
-        new("TextLabel", {
-            Size = UDim2.new(1, -50, 1, 0),
-            Position = UDim2.new(0, 10, 0, 0),
-            BackgroundTransparency = 1,
-            Text = text or "Toggle",
-            TextColor3 = theme.TextColor,
-            Font = theme.TextFont,
-            TextSize = theme.TextSize,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = toggleFrame
-        })
-
-        -- Nút trượt
-        local switch = new("Frame", {
-            Size = UDim2.new(0, 40, 0, 20),
-            Position = UDim2.new(1, -45, 0.5, -10),
-            BackgroundColor3 = state and theme.Accent or theme.InputStroke,
-            BorderSizePixel = 0,
-            Parent = toggleFrame
-        }, {
-            new("UICorner", { CornerRadius = UDim.new(1, 0) })
-        })
-
-        -- Nút tròn bên trong
-        local knob = new("Frame", {
-            Size = UDim2.new(0, 16, 0, 16),
-            Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
-            BackgroundColor3 = theme.TextColor,
-            BorderSizePixel = 0,
-            Parent = switch
-        }, {
-            new("UICorner", { CornerRadius = UDim.new(1, 0) })
-        })
-
-        -- Hàm cập nhật giao diện toggle
-        local function updateVisual()
-            switch.BackgroundColor3 = state and theme.Accent or theme.InputStroke
-            knob.Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-        end
-
-        -- Click toggle
-        toggleFrame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                state = not state
-                updateVisual()
-                if callback then
-                    pcall(callback, state)
-                end
-            end
-        end)
-
-        return {
-            Set = function(_, val)
-                state = val
-                updateVisual()
-            end,
-            Get = function()
-                return state
-            end
-        }
-    end
-end
     return UILib
