@@ -151,7 +151,7 @@ MyLib:SetTheme({ Accent = Color3.fromRGB(255,100,80) })
 
 
 -- =========================
--- Chức năng 2: CreateWindow (Full: PC + Mobile + Minimize thu nhỏ)
+-- Chức năng 2: CreateWindow (Full + Mobile drag + Minimize nhớ vị trí box nhỏ)
 -- =========================
 function UILib:CreateWindow(title, version, sizeX, sizeY)
     local theme = self._SelectedTheme
@@ -171,18 +171,6 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         BackgroundColor3 = theme.Background,
         BorderSizePixel = 0,
         Parent = gui
-    }, {
-        new("UICorner", { CornerRadius = theme.Corner })
-    })
-
-    -- Shadow
-    new("Frame", {
-        Size = UDim2.new(1, 10, 1, 10),
-        Position = UDim2.new(0, -5, 0, -5),
-        BackgroundColor3 = theme.Shadow,
-        BorderSizePixel = 0,
-        ZIndex = 0,
-        Parent = mainFrame
     }, {
         new("UICorner", { CornerRadius = theme.Corner })
     })
@@ -279,16 +267,12 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
         startPos = mainFrame.Position
     end
 
-        local function updateDrag(input)
+    local function updateDrag(input)
         local delta = input.Position - dragStart
-        local newPos = UDim2.new(
+        mainFrame.Position = UDim2.new(
             startPos.X.Scale, startPos.X.Offset + delta.X,
             startPos.Y.Scale, startPos.Y.Offset + delta.Y
         )
-        mainFrame.Position = newPos
-        if minimized then
-            minimizedPos = newPos -- lưu vị trí khi đang thu nhỏ
-        end
     end
 
     topbar.InputBegan:Connect(function(input)
@@ -310,37 +294,39 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
     end)
 
     -- =========================
-    -- Minimize / Close
+    -- Minimize / Close (nhớ vị trí box nhỏ)
     -- =========================
     local originalSize = mainFrame.Size
     local originalPos = mainFrame.Position
     local minimized = false
-    local minimizedPos
+    local minimizedPos = UDim2.new(1, -160, 0, 20) -- vị trí mặc định lần đầu
 
-        btnMin.MouseButton1Click:Connect(function()
+    btnMin.MouseButton1Click:Connect(function()
         minimized = not minimized
         if minimized then
-            -- Lưu lại kích thước & vị trí gốc
+            -- Lưu lại vị trí & kích thước cũ
             originalSize = mainFrame.Size
             originalPos = mainFrame.Position
+
+            -- Ẩn nội dung
             contentFrame.Visible = false
             sidebar.Visible = false
+
+            -- Thu nhỏ về vị trí đã lưu
             mainFrame.Size = UDim2.new(0, 150, 0, 40)
-            -- Nếu đã có vị trí thu nhỏ thì giữ nguyên, chưa có thì đặt mặc định
-            mainFrame.Position = minimizedPos or UDim2.new(1, -160, 0, 20)
+            mainFrame.Position = minimizedPos
         else
-            -- Khi phóng to lại, tính thêm độ lệch vị trí thu nhỏ
-            local deltaX = mainFrame.Position.X.Offset - (minimizedPos and minimizedPos.X.Offset or -160)
-            local deltaY = mainFrame.Position.Y.Offset - (minimizedPos and minimizedPos.Y.Offset or 20)
+            -- Lưu lại vị trí khi đang minimize (để nhớ cho lần sau)
+            minimizedPos = mainFrame.Position
+
+            -- Khôi phục menu
             mainFrame.Size = originalSize
-            mainFrame.Position = UDim2.new(
-                originalPos.X.Scale, originalPos.X.Offset + deltaX,
-                originalPos.Y.Scale, originalPos.Y.Offset + deltaY
-            )
+            mainFrame.Position = originalPos
             contentFrame.Visible = true
             sidebar.Visible = true
         end
     end)
+
     btnClose.MouseButton1Click:Connect(function()
         gui:Destroy()
     end)
