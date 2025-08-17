@@ -494,6 +494,10 @@ function UILib:CreateWindow(title, version, sizeX, sizeY)
             Parent = pagesFolder
         })
 
+            -- Gắn các widget (Button / Toggle) vào page
+    if AttachButtonFunction then AttachButtonFunction(page, theme, new) end
+    if AttachToggleFunction then AttachToggleFunction(page, theme, new) end
+
         tabBtn.MouseButton1Click:Connect(function()
             for _, pg in pairs(pagesFolder:GetChildren()) do
                 pg.Visible = false
