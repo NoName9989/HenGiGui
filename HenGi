@@ -1,134 +1,69 @@
--- Rayfield Hub Example
+-- Rayfield Loader
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+local url = "https://raw.githubusercontent.com/<username>/<repo>/main/AllScripts.lua"
+local all = game:HttpGet(url)
+
+-- Hàm lấy script theo marker
+local function GetScript(id)
+    local marker = "--SCRIPT"..id.."--"
+    local startPos = all:find(marker)
+    if not startPos then return nil end
+
+    local nextMarker = all:find("%-%-SCRIPT%d+%-%-", startPos+1)
+    if nextMarker then
+        return all:sub(startPos + #marker, nextMarker-1)
+    else
+        return all:sub(startPos + #marker)
+    end
+end
+
+-- Hàm chạy script
+local function RunScript(id)
+    local code = GetScript(id)
+    if code then
+        loadstring(code)()
+        Rayfield:Notify({
+            Title = "Script Hub",
+            Content = "Đã chạy Script "..id,
+            Duration = 3
+        })
+    else
+        Rayfield:Notify({
+            Title = "Script Hub",
+            Content = "Không tìm thấy Script "..id,
+            Duration = 3
+        })
+    end
+end
+
+-- Tạo cửa sổ Rayfield
 local Window = Rayfield:CreateWindow({
-   Name = "Script Hub",
-   LoadingTitle = "Loading...",
-   LoadingSubtitle = "By You",
+   Name = "HenGi Hub",
+   LoadingTitle = "Loading Scripts...",
+   LoadingSubtitle = "By HenGi",
    ConfigurationSaving = {
       Enabled = true,
       FolderName = nil,
-      FileName = "MyScriptHub"
+      FileName = "HenGi Hub"
    },
-   Discord = {
-      Enabled = false,
-      Invite = "", -- invite link nếu bạn có server
-      RememberJoins = true
-   },
-   KeySystem = false, -- bật nếu muốn có key
+   KeySystem = false,
 })
 
--- Tab Scripts
-local ScriptsTab = Window:CreateTab("Scripts", 4483362458) -- iconId là decalId Roblox
+local Tab = Window:CreateTab("Scripts", 4483362458)
 
--- Section
-local Section = ScriptsTab:CreateSection("Choose a Script to Run")
-
--- Ví dụ script 1
-ScriptsTab:CreateButton({
+-- Tạo nút cho từng script
+Tab:CreateButton({
    Name = "Anti ServerHop",
-   Callback = function()
-      -- Code chặn teleport
-      -- Gui nhỏ bật/tắt Anti Teleport + nút đóng
-local Players = game:GetService("Players")
-local TeleportService = game:GetService("TeleportService")
-local player = Players.LocalPlayer
-
--- Tạo ScreenGui
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "AntiTeleportUI"
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
-
--- Tạo Frame chính
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 200, 0, 80)
-Frame.Position = UDim2.new(0, 20, 0, 200)
-Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Frame.Parent = ScreenGui
-
--- Nút Toggle Anti Teleport
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 150, 0, 40)
-ToggleButton.Position = UDim2.new(0, 25, 0, 10)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.TextScaled = true
-ToggleButton.Text = "Anti ServerHop: OFF"
-ToggleButton.Parent = Frame
-
--- Nút Close
-local CloseButton = Instance.new("TextButton")
-CloseButton.Size = UDim2.new(0, 25, 0, 25)
-CloseButton.Position = UDim2.new(1, -30, 0, 5)
-CloseButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.Text = "X"
-CloseButton.Parent = Frame
-
--- Biến quản lý
-local originalFuncs = {}
-local hooked = false
-
--- Hàm bật/tắt
-local function toggleAntiTeleport()
-	if not hooked then
-		local funcs = {
-			"Teleport",
-			"TeleportAsync",
-			"TeleportPartyAsync",
-			"TeleportToPlaceInstance",
-			"TeleportToPrivateServer"
-		}
-		for _, fname in ipairs(funcs) do
-			if typeof(TeleportService[fname]) == "function" then
-				originalFuncs[fname] = TeleportService[fname]
-				hookfunction(TeleportService[fname], function(...)
-					warn("[BLOCKED] "..fname.." attempt blocked!")
-					return
-				end)
-			end
-		end
-		hooked = true
-		ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-		ToggleButton.Text = "Anti ServerHop: ON"
-	else
-		for fname, func in pairs(originalFuncs) do
-			hookfunction(TeleportService[fname], func)
-		end
-		hooked = false
-		ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-		ToggleButton.Text = "Anti ServerHop: OFF"
-	end
-end
-
--- Sự kiện click
-ToggleButton.MouseButton1Click:Connect(toggleAntiTeleport)
-
--- Sự kiện đóng frame
-CloseButton.MouseButton1Click:Connect(function()
-	ScreenGui:Destroy()
-end)
-      Rayfield:Notify({
-         Title = "Activated",
-         Content = "Anti Teleport script is now running!",
-         Duration = 3
-      })
-   end,
+   Callback = function() RunScript(1) end
 })
 
--- Ví dụ script 2
-ScriptsTab:CreateButton({
-   Name = "Infinite Jump",
-   Callback = function()
-      local Player = game:GetService("Players").LocalPlayer
-      local UIS = game:GetService("UserInputService")
-      UIS.JumpRequest:Connect(function()
-          Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-      end)
-      Rayfield:Notify({
-         Title = "Activated",
-         Content = "Infinite Jump enabled!",
-         Duration = 3
-      })
-   end,
+Tab:CreateButton({
+   Name = "Toạ độ",
+   Callback = function() RunScript(2) end
+})
+
+Tab:CreateButton({
+   Name = "AutoSell GaG",
+   Callback = function() RunScript(3) end
 })
