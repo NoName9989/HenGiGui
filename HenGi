@@ -1,7 +1,7 @@
 -- Rayfield Loader
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local url = "https://raw.githubusercontent.com/<username>/<repo>/main/AllScripts.lua"
+local url = "https://raw.githubusercontent.com/NoName9989/HenGiGui/refs/heads/main/Allscripts"
 local all = game:HttpGet(url)
 
 -- Hàm lấy script theo marker
