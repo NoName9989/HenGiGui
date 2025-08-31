@@ -1,0 +1,362 @@
+--SCRIPT1--
+--Anti ServerHop--
+-- Gui nhỏ bật/tắt Anti Teleport + nút đóng
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+
+-- Tạo ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AntiTeleportUI"
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Tạo Frame chính
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 200, 0, 80)
+Frame.Position = UDim2.new(0, 20, 0, 200)
+Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+Frame.Parent = ScreenGui
+
+-- Nút Toggle Anti Teleport
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 150, 0, 40)
+ToggleButton.Position = UDim2.new(0, 25, 0, 10)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextScaled = true
+ToggleButton.Text = "Anti Teleport: OFF"
+ToggleButton.Parent = Frame
+
+-- Nút Close
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 25, 0, 25)
+CloseButton.Position = UDim2.new(1, -30, 0, 5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Text = "X"
+CloseButton.Parent = Frame
+
+-- Biến quản lý
+local originalFuncs = {}
+local hooked = false
+
+-- Hàm bật/tắt
+local function toggleAntiTeleport()
+	if not hooked then
+		local funcs = {
+			"Teleport",
+			"TeleportAsync",
+			"TeleportPartyAsync",
+			"TeleportToPlaceInstance",
+			"TeleportToPrivateServer"
+		}
+		for _, fname in ipairs(funcs) do
+			if typeof(TeleportService[fname]) == "function" then
+				originalFuncs[fname] = TeleportService[fname]
+				hookfunction(TeleportService[fname], function(...)
+					warn("[BLOCKED] "..fname.." attempt blocked!")
+					return
+				end)
+			end
+		end
+		hooked = true
+		ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+		ToggleButton.Text = "Anti Teleport: ON"
+	else
+		for fname, func in pairs(originalFuncs) do
+			hookfunction(TeleportService[fname], func)
+		end
+		hooked = false
+		ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+		ToggleButton.Text = "Anti Teleport: OFF"
+	end
+end
+
+-- Sự kiện click
+ToggleButton.MouseButton1Click:Connect(toggleAntiTeleport)
+
+-- Sự kiện đóng frame
+CloseButton.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
+--SCRIPT2--
+--Lấy toạ độ--
+-- LocalScript trong StarterGui
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+
+-- GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ServerToolsGUI"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 260)
+frame.Position = UDim2.new(0.5, -150, 0.5, -130)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.Active = true
+frame.Draggable = true -- kéo thả frame
+frame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = frame
+
+-- Thanh tiêu đề
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -40, 0, 30)
+title.Position = UDim2.new(0, 10, 0, 5)
+title.Text = "Server Tools"
+title.TextSize = 18
+title.Font = Enum.Font.SourceSansBold
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.BackgroundTransparency = 1
+title.Parent = frame
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.Text = "X"
+closeBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
+closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+closeBtn.Parent = frame
+
+local cornerClose = Instance.new("UICorner")
+cornerClose.CornerRadius = UDim.new(0, 6)
+cornerClose.Parent = closeBtn
+
+closeBtn.MouseButton1Click:Connect(function()
+    frame.Visible = false
+end)
+
+-- Hàm tiện ích
+local function getPosition()
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        local pos = hrp.Position
+        return string.format("%d, %d, %d", math.floor(pos.X + 0.5), math.floor(pos.Y + 0.5), math.floor(pos.Z + 0.5))
+    else
+        return "0, 0, 0"
+    end
+end
+
+local function getServerID()
+    return game.JobId
+end
+
+local function hopServer()
+    TeleportService:Teleport(game.PlaceId, player) -- server random
+end
+
+-- TextBox Tọa độ
+local posBox = Instance.new("TextBox")
+posBox.Size = UDim2.new(0, 260, 0, 30)
+posBox.Position = UDim2.new(0, 20, 0, 50)
+posBox.Text = "0, 0, 0"
+posBox.Font = Enum.Font.SourceSans
+posBox.TextSize = 16
+posBox.ClearTextOnFocus = false
+posBox.TextColor3 = Color3.fromRGB(255,255,255)
+posBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
+posBox.Parent = frame
+
+local posCorner = Instance.new("UICorner")
+posCorner.CornerRadius = UDim.new(0, 6)
+posCorner.Parent = posBox
+
+-- Nút Cập nhật tọa độ
+local posBtn = Instance.new("TextButton")
+posBtn.Size = UDim2.new(0, 120, 0, 30)
+posBtn.Position = UDim2.new(0, 20, 0, 90)
+posBtn.Text = "Cập nhật"
+posBtn.Font = Enum.Font.SourceSansBold
+posBtn.TextSize = 16
+posBtn.BackgroundColor3 = Color3.fromRGB(90,90,200)
+posBtn.TextColor3 = Color3.fromRGB(255,255,255)
+posBtn.Parent = frame
+
+local posBtnCorner = Instance.new("UICorner")
+posBtnCorner.CornerRadius = UDim.new(0, 6)
+posBtnCorner.Parent = posBtn
+
+posBtn.MouseButton1Click:Connect(function()
+    posBox.Text = getPosition()
+end)
+
+-- Nút Copy tọa độ
+local posCopyBtn = Instance.new("TextButton")
+posCopyBtn.Size = UDim2.new(0, 120, 0, 30)
+posCopyBtn.Position = UDim2.new(0, 160, 0, 90)
+posCopyBtn.Text = "Copy"
+posCopyBtn.Font = Enum.Font.SourceSansBold
+posCopyBtn.TextSize = 16
+posCopyBtn.BackgroundColor3 = Color3.fromRGB(70,150,70)
+posCopyBtn.TextColor3 = Color3.fromRGB(255,255,255)
+posCopyBtn.Parent = frame
+
+local posCopyCorner = Instance.new("UICorner")
+posCopyCorner.CornerRadius = UDim.new(0, 6)
+posCopyCorner.Parent = posCopyBtn
+
+posCopyBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(posBox.Text)
+    else
+        warn("Executor không hỗ trợ setclipboard")
+    end
+end)
+
+-- TextBox Server ID
+local idBox = Instance.new("TextBox")
+idBox.Size = UDim2.new(0, 260, 0, 30)
+idBox.Position = UDim2.new(0, 20, 0, 140)
+idBox.Text = ""
+idBox.Font = Enum.Font.SourceSans
+idBox.TextSize = 16
+idBox.ClearTextOnFocus = false
+idBox.TextColor3 = Color3.fromRGB(255,255,255)
+idBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
+idBox.Parent = frame
+
+local idCorner = Instance.new("UICorner")
+idCorner.CornerRadius = UDim.new(0, 6)
+idCorner.Parent = idBox
+
+-- Nút Cập nhật ID
+local idBtn = Instance.new("TextButton")
+idBtn.Size = UDim2.new(0, 120, 0, 30)
+idBtn.Position = UDim2.new(0, 20, 0, 180)
+idBtn.Text = "Cập nhật"
+idBtn.Font = Enum.Font.SourceSansBold
+idBtn.TextSize = 16
+idBtn.BackgroundColor3 = Color3.fromRGB(90,90,200)
+idBtn.TextColor3 = Color3.fromRGB(255,255,255)
+idBtn.Parent = frame
+
+local idBtnCorner = Instance.new("UICorner")
+idBtnCorner.CornerRadius = UDim.new(0, 6)
+idBtnCorner.Parent = idBtn
+
+idBtn.MouseButton1Click:Connect(function()
+    idBox.Text = getServerID()
+end)
+
+-- Nút Copy ID
+local idCopyBtn = Instance.new("TextButton")
+idCopyBtn.Size = UDim2.new(0, 120, 0, 30)
+idCopyBtn.Position = UDim2.new(0, 160, 0, 180)
+idCopyBtn.Text = "Copy"
+idCopyBtn.Font = Enum.Font.SourceSansBold
+idCopyBtn.TextSize = 16
+idCopyBtn.BackgroundColor3 = Color3.fromRGB(70,150,70)
+idCopyBtn.TextColor3 = Color3.fromRGB(255,255,255)
+idCopyBtn.Parent = frame
+
+local idCopyCorner = Instance.new("UICorner")
+idCopyCorner.CornerRadius = UDim.new(0, 6)
+idCopyCorner.Parent = idCopyBtn
+
+idCopyBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(idBox.Text)
+    else
+        warn("Executor không hỗ trợ setclipboard")
+    end
+end)
+
+-- Nút Server Hop
+local hopBtn = Instance.new("TextButton")
+hopBtn.Size = UDim2.new(0, 260, 0, 30)
+hopBtn.Position = UDim2.new(0, 20, 0, 220)
+hopBtn.Text = "Server Hop"
+hopBtn.Font = Enum.Font.SourceSansBold
+hopBtn.TextSize = 16
+hopBtn.BackgroundColor3 = Color3.fromRGB(200,150,50)
+hopBtn.TextColor3 = Color3.fromRGB(255,255,255)
+hopBtn.Parent = frame
+
+local hopCorner = Instance.new("UICorner")
+hopCorner.CornerRadius = UDim.new(0, 6)
+hopCorner.Parent = hopBtn
+
+hopBtn.MouseButton1Click:Connect(function()
+    hopServer()
+end)
+--SCRIPT3--
+--Bán vật Phẩm GAG
+-- LocalScript trong StarterGui
+
+-- Tạo ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoSellGUI"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 220, 0, 120)
+frame.Position = UDim2.new(0.5, -110, 0.5, -60)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = frame
+
+-- Nút bật/tắt Auto
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 200, 0, 40)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.Text = "AutoSell: OFF"
+toggleButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Parent = frame
+
+-- Nút đóng Frame
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 200, 0, 40)
+closeButton.Position = UDim2.new(0, 10, 0, 60)
+closeButton.Text = "Đóng Frame"
+closeButton.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Parent = frame
+
+-- Biến auto
+local autoRunning = false
+
+-- Hàm auto sell
+local function autoSell()
+    while autoRunning do
+        local char = game:GetService("Players").LocalPlayer.Character
+        if char then
+            -- lấy thứ người chơi đang cầm (Tool)
+            local heldItem = char:FindFirstChildOfClass("Tool")
+            if heldItem then
+                local args = {
+                    [1] = heldItem
+                }
+                game:GetService("ReplicatedStorage").GameEvents.SellPet_RE:FireServer(unpack(args))
+            end
+        end
+        task.wait(1) -- thời gian lặp (1 giây)
+    end
+end
+
+-- Bật/tắt Auto
+toggleButton.MouseButton1Click:Connect(function()
+    autoRunning = not autoRunning
+    if autoRunning then
+        toggleButton.Text = "AutoSell: ON"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+        task.spawn(autoSell)
+    else
+        toggleButton.Text = "AutoSell: OFF"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    end
+end)
+
+-- Đóng Frame
+closeButton.MouseButton1Click:Connect(function()
+    frame.Visible = false
+end)
