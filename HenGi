@@ -1363,4 +1363,85 @@ function Sections:Dropdown(properties)
 	return dropdown
 end
 
+-- ==================== HỆ THỐNG THÔNG BÁO GLASS ====================
+local NotificationHolder = nil
+
+function Library:CreateNotificationSystem()
+	if NotificationHolder then return end
+
+	NotificationHolder = Utility:Render("ScreenGui", {
+		Name = "QwNotifications",
+		ResetOnSpawn = false,
+		Parent = game:GetService("CoreGui") or game.Players.LocalPlayer:WaitForChild("PlayerGui")
+	})
+
+	local Holder = Utility:Render("Frame", {
+		Name = "Holder",
+		Size = UDim2.new(0, 340, 1, -40),
+		Position = UDim2.new(1, -360, 1, -20),
+		BackgroundTransparency = 1,
+		Parent = NotificationHolder
+	})
+
+	Utility:Render("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 12),
+		VerticalAlignment = Enum.VerticalAlignment.Bottom,
+		Parent = Holder
+	})
+end
+
+function Library:Notify(Text, Duration)
+	Duration = Duration or 4.5
+	Library:CreateNotificationSystem()
+
+	local Notif = Utility:Render("Frame", {
+		Size = UDim2.new(0, 340, 0, 82),
+		BackgroundColor3 = "DarkContrastBackground",
+		BackgroundTransparency = 0.35,
+		Parent = NotificationHolder["Holder"]
+	})
+
+	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 14), Parent = Notif})
+	Utility:Render("UIStroke", {Color = "BorderInner", Transparency = 0.45, Thickness = 1.2, Parent = Notif})
+
+	-- Tên menu
+	local Title = Utility:Render("TextLabel", {
+		Text = "Qw Hub",
+		Size = UDim2.new(1, -20, 0, 24),
+		Position = UDim2.new(0, 14, 0, 10),
+		BackgroundTransparency = 1,
+		TextColor3 = "Accent",
+		TextXAlignment = Enum.TextXAlignment.Left,
+		FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold),
+		TextSize = 15,
+		Parent = Notif
+	})
+
+	-- Nội dung thông báo
+	local Message = Utility:Render("TextLabel", {
+		Text = Text,
+		Size = UDim2.new(1, -28, 0, 42),
+		Position = UDim2.new(0, 14, 0, 34),
+		BackgroundTransparency = 1,
+		TextColor3 = "Text",
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		TextWrapped = true,
+		TextSize = 13.5,
+		Parent = Notif
+	})
+
+	-- Animation slide in
+	Notif.Position = UDim2.new(1, 400, 0, 0)
+	ts:Create(Notif, TweenInfo.new(0.65, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+
+	task.delay(Duration, function()
+		if Notif and Notif.Parent then
+			ts:Create(Notif, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(1, 400, 0, 0)}):Play()
+			task.delay(0.6, function() Notif:Destroy() end)
+		end
+	end)
+end
+
 return Library
