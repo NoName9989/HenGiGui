@@ -859,8 +859,33 @@ Library.RenderModules = setmetatable({
 			Parent = OptionFrame 
 		}) 
 		return OptionFrame
-
-
+	end,
+ButtonContainer = function()
+		local ButtonContainer = Utility:Render("TextButton", {  
+			BackgroundTransparency = 1,
+			Text = "",
+			Name = "ButtonContainer",
+			Size = UDim2.new(1, 0, 0, 36),
+			BorderSizePixel = 0,
+		}) 
+		local ButtonBackground = Utility:Render("Frame", {  
+			Name = "ButtonBackground",
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundColor3 = "LightContrastBackground",
+			Parent = ButtonContainer 
+		}) 
+		Utility:Render("UIStroke", {Color = "BorderInner", Parent = ButtonBackground})
+		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = ButtonBackground})
+		local ButtonTitle = Utility:Render("TextLabel", {  
+			Name = "ButtonTitle",
+			TextColor3 = "Text",
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			TextSize = 13,
+			FontFace = Library.Text.Font,
+			Parent = ButtonBackground 
+		}) 
+		return ButtonContainer
 	end,
 },Library.RenderModules)
 local Tabs = Library.Tabs;
@@ -1361,6 +1386,25 @@ function Sections:Dropdown(properties)
 	end
 	dropdown:SetValue(dropdown.Value)
 	return dropdown
+end
+function Sections:Button(properties)
+	properties = properties or {}
+	local Button = {
+		Title = properties.Title or "Button",
+		Callback = properties.Callback or function() end
+	}
+	local ButtonContainer = Library.RenderModules:ButtonContainer()
+	ButtonContainer.Parent = self.Container
+	ButtonContainer["ButtonBackground"]["ButtonTitle"].Text = Button.Title
+
+	Utility:storeEvent(ButtonContainer.MouseButton1Down, function()
+		task.spawn(function()
+			ts:Create(ButtonContainer["ButtonBackground"], Utility.TweenInfo, {BackgroundColor3 = Utility.Theme.Accent}):Play()
+			task.wait(0.1)
+			ts:Create(ButtonContainer["ButtonBackground"], Utility.TweenInfo, {BackgroundColor3 = Utility.Theme.LightContrastBackground}):Play()
+		end)
+		Button.Callback()
+	end)
 end
 
 -- ==================== HỆ THỐNG THÔNG BÁO GLASS ====================
