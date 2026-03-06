@@ -824,7 +824,7 @@ Library.RenderModules = setmetatable({
 		return DropdownContainer
 
 	end,
-OptionButton = function()
+	OptionButton = function()
 		local OptionFrame = Utility:Render("TextButton", {  
 			Name = "OptionFrame",
 			BackgroundTransparency = 1,
@@ -859,56 +859,35 @@ OptionButton = function()
 			Parent = OptionFrame 
 		}) 
 		return OptionFrame
-
-
 	end,
-function Sections:Button(properties)
-	properties = properties or {}
-	local Button = {
-		Title = properties.Title or "Button",
-		Callback = properties.Callback or function() end
-	}
 
-	local ButtonContainer = Library.RenderModules:ButtonContainer()
-	ButtonContainer.Parent = self.Container
-	ButtonContainer["ButtonBackground"]["ButtonTitle"].Text = Button.Title
-
-	-- Làm đẹp thêm (rounded + gradient nhẹ)
-	local Corner = Utility:Render("UICorner", {CornerRadius = UDim.new(0, 10), Parent = ButtonContainer["ButtonBackground"]})
-	local Gradient = Utility:Render("UIGradient", {
-		Color = ColorSequence.new{
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(180,180,180))
-		},
-		Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 0.85), NumberSequenceKeypoint.new(1, 0.95)},
-		Parent = ButtonContainer["ButtonBackground"]
-	})
-
-	-- Hover + Press effect đẹp
-	Utility:storeEvent(ButtonContainer.MouseButton1Down, function()
-		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.1), {
-			Size = UDim2.new(0.95, 0, 0.95, 0),
-			BackgroundColor3 = Utility.Theme.Accent
-		}):Play()
-		
-		task.delay(0.12, function()
-			ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.25, Enum.EasingStyle.Quint), {
-				Size = UDim2.new(1, 0, 1, 0),
-				BackgroundColor3 = Utility.Theme.LightContrastBackground
-			}):Play()
-		end)
-		
-		Button.Callback()
-	end)
-
-	-- Hover scale nhẹ
-	Utility:storeEvent(ButtonContainer.MouseEnter, function()
-		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.2), {Size = UDim2.new(1.02, 0, 1.02, 0)}):Play()
-	end)
-	Utility:storeEvent(ButtonContainer.MouseLeave, function()
-		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 1, 0)}):Play()
-	end)
-end,
+	ButtonContainer = function()
+		local ButtonContainer = Utility:Render("TextButton", {  
+			BackgroundTransparency = 1,
+			Text = "",
+			Name = "ButtonContainer",
+			Size = UDim2.new(1, 0, 0, 36),
+			BorderSizePixel = 0,
+		}) 
+		local ButtonBackground = Utility:Render("Frame", {  
+			Name = "ButtonBackground",
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundColor3 = "LightContrastBackground",
+			Parent = ButtonContainer 
+		}) 
+		Utility:Render("UIStroke", {Color = "BorderInner", Parent = ButtonBackground})
+		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = ButtonBackground})
+		local ButtonTitle = Utility:Render("TextLabel", {  
+			Name = "ButtonTitle",
+			TextColor3 = "Text",
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			TextSize = 13,
+			FontFace = Library.Text.Font,
+			Parent = ButtonBackground 
+		}) 
+		return ButtonContainer
+	end,
 },Library.RenderModules)
 local Tabs = Library.Tabs;
 local Sections = Library.sections;
@@ -1415,18 +1394,46 @@ function Sections:Button(properties)
 		Title = properties.Title or "Button",
 		Callback = properties.Callback or function() end
 	}
+
 	local ButtonContainer = Library.RenderModules:ButtonContainer()
 	ButtonContainer.Parent = self.Container
 	ButtonContainer["ButtonBackground"]["ButtonTitle"].Text = Button.Title
 
+	-- Làm đẹp (rounded + hover + press)
+	local Corner = Utility:Render("UICorner", {CornerRadius = UDim.new(0, 10), Parent = ButtonContainer["ButtonBackground"]})
+	local Gradient = Utility:Render("UIGradient", {
+		Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(180,180,180))
+		},
+		Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 0.85), NumberSequenceKeypoint.new(1, 0.95)},
+		Parent = ButtonContainer["ButtonBackground"]
+	})
+
 	Utility:storeEvent(ButtonContainer.MouseButton1Down, function()
-		task.spawn(function()
-			ts:Create(ButtonContainer["ButtonBackground"], Utility.TweenInfo, {BackgroundColor3 = Utility.Theme.Accent}):Play()
-			task.wait(0.1)
-			ts:Create(ButtonContainer["ButtonBackground"], Utility.TweenInfo, {BackgroundColor3 = Utility.Theme.LightContrastBackground}):Play()
+		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.1), {
+			Size = UDim2.new(0.95, 0, 0.95, 0),
+			BackgroundColor3 = Utility.Theme.Accent
+		}):Play()
+		
+		task.delay(0.12, function()
+			ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.25, Enum.EasingStyle.Quint), {
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundColor3 = Utility.Theme.LightContrastBackground
+			}):Play()
 		end)
+		
 		Button.Callback()
 	end)
+
+	Utility:storeEvent(ButtonContainer.MouseEnter, function()
+		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.2), {Size = UDim2.new(1.02, 0, 1.02, 0)}):Play()
+	end)
+	Utility:storeEvent(ButtonContainer.MouseLeave, function()
+		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+	end)
 end
+
+return Library
 
 return Library
