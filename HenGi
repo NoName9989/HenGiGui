@@ -931,7 +931,7 @@ function Library:Window(properties)
 		NewWindow:Destroy()
 		setmetatable(Library,nil)
 	end
-	window.MainFrame = NewWindow["Window"]
+		window.MainFrame = NewWindow["Window"]
 
 	-- ==================== NÚT THU NHỎ + ĐÓNG (không chữ) ====================
 	local TitleButtons = Utility:Render("Frame", {
@@ -1006,30 +1006,38 @@ function Library:Window(properties)
 	AddHover(MinimizeBtn, Utility.Theme.Text)
 	AddHover(CloseBtn, Color3.fromRGB(255, 80, 80))
 
-	-- ==================== KÉO THẢ ====================
+	-- ==================== KÉO THẢ (DRAG) ====================
 	local dragging = false
 	local dragStart
 	local startPos
 
 	local function update(input)
 		local delta = input.Position - dragStart
-		NewWindow["Window"].Position = UDim
-	function Tabs:Section(properties)
-	local properties = properties or {}
-	local Section = {
-		Side = self.Filled and "Left" or properties.Side or properties.side or "Left",
-		window = self.window,
-		Title = properties.Title or properties.title or "Section",
-		Container = nil,
-	}
-	local sectionFrame = Library.RenderModules:SectionFrame()
-	sectionFrame.Parent = self.Sides[Section.Side]
-	sectionFrame["ModuleContainer"]["SectionTitle"].Text = Section.Title
+		NewWindow["Window"].Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
 
-	Section.Container = sectionFrame["ModuleContainer"]
-	return setmetatable(Section,Library.sections)
+	local function startDrag(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = NewWindow["Window"].Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then dragging = false end
+			end)
+		end
+	end
+
+	Utility:storeEvent(NewWindow["Window"]["SideBar"]["InterfaceTitle"].InputBegan, startDrag)
+	Utility:storeEvent(TitleButtons.InputBegan, startDrag)
+
+	Utility:storeEvent(UserInputService.InputChanged, function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			update(input)
+		end
+	end)
+
+	return setmetatable(window,Library)
 end
-
 function Sections:Switch(properties)
 	properties = properties or {}
 	local Switch = {
