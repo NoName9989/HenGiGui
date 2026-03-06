@@ -932,12 +932,28 @@ function Library:Window(properties)
 		setmetatable(Library,nil)
 	end
 
-		window.MainFrame = NewWindow["Window"]
+			window.MainFrame = NewWindow["Window"]
 
-	-- ==================== CÁC BIẾN GỐC ====================
+	-- ==================== SETUP TITLE (KHÔNG ĐỘNG TITLE GỐC) ====================
 	local SideBar = NewWindow["Window"]["SideBar"]
 	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
-	local InterfaceTitle = SideBar["InterfaceTitle"]  -- title gốc (không động vào)
+	local OriginalTitle = SideBar["InterfaceTitle"]   -- title gốc, KHÔNG bao giờ thay đổi
+
+	-- Tạo title riêng cho khi thu nhỏ (để tránh lệch vĩnh viễn)
+	local MinTitle = Utility:Render("TextLabel", {
+		Name = "MinTitle",
+		BackgroundTransparency = 1,
+		Text = window.Title,
+		TextColor3 = "Text",
+		FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+		TextSize = 18,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Center,
+		Size = UDim2.new(0.65, 0, 1, 0),
+		Position = UDim2.new(0, 18, 0, 8),
+		Visible = false,
+		Parent = NewWindow["Window"]
+	})
 
 	-- ==================== NÚT THU NHỎ + ĐÓNG ====================
 	local TitleButtons = Utility:Render("Frame", {
@@ -979,38 +995,23 @@ function Library:Window(properties)
 	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = CloseBtn})
 	Utility:Render("UIStroke", {Color = "BorderInner", Parent = CloseBtn})
 
-	-- ==================== TITLE RIÊNG KHI THU NHỎ (không động title gốc) ====================
-	local MinTitle = Utility:Render("TextLabel", {
-		Name = "MinTitle",
-		BackgroundTransparency = 1,
-		Text = window.Title,
-		TextColor3 = "Text",
-		FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold),
-		TextSize = 18,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextYAlignment = Enum.TextYAlignment.Center,
-		Size = UDim2.new(0.65, 0, 1, 0),
-		Position = UDim2.new(0, 15, 0, 8),
-		Visible = false,
-		Parent = NewWindow["Window"]
-	})
-
 	local minimized = false
 	local originalSize = NewWindow["Window"].Size
 
+	-- ==================== MINIMIZE LOGIC (sạch sẽ, không lệch) ====================
 	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
 		minimized = not minimized
 		if minimized then
 			SideBar.Visible = false
 			PageContainer.Visible = false
-			InterfaceTitle.Visible = false
+			OriginalTitle.Visible = false
 			MinTitle.Visible = true
 			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
 			MinimizeBtn.Text = "+"
 		else
 			SideBar.Visible = true
 			PageContainer.Visible = true
-			InterfaceTitle.Visible = true
+			OriginalTitle.Visible = true
 			MinTitle.Visible = false
 			NewWindow["Window"].Size = originalSize
 			MinimizeBtn.Text = "–"
@@ -1028,7 +1029,7 @@ function Library:Window(properties)
 	AddHover(MinimizeBtn, Utility.Theme.Text)
 	AddHover(CloseBtn, Color3.fromRGB(255, 80, 80))
 
-	-- ==================== KÉO THẢ (DRAG) CHO ĐIỆN THOẠI + PC ====================
+	-- ==================== KÉO THẢ (DRAG) ====================
 	local dragging = false
 	local dragStart
 	local startPos
@@ -1049,7 +1050,7 @@ function Library:Window(properties)
 		end
 	end
 
-	Utility:storeEvent(InterfaceTitle.InputBegan, startDrag)
+	Utility:storeEvent(OriginalTitle.InputBegan, startDrag)
 	Utility:storeEvent(MinTitle.InputBegan, startDrag)
 	Utility:storeEvent(TitleButtons.InputBegan, startDrag)
 
