@@ -932,9 +932,7 @@ function Library:Window(properties)
 	end
 
 	window.MainFrame = NewWindow["Window"]
--- ==================== NÚT THU NHỎ & ĐÓNG MENU (góc trên bên phải) ====================
-	local TitleButtons = Utility:Render("Frame", {
-		Name = "TitleButtons",
+ons",
 		Size = UDim2.new(0, 70, 0, 28),
 		Position = UDim2.new(1, -80, 0, 6),
 		BackgroundTransparency = 1,
@@ -949,64 +947,6 @@ function Library:Window(properties)
 		Text = "–",
 		TextColor3 = "Text",
 		TextSize = 24,
-		FontFace = Library.Text.Font,
-		AutoButtonColor = false,
-		Parent = TitleButtons
-	})
-
-	local CloseBtn = Utility:Render("TextButton", {
-		Name = "CloseBtn",
-		Size = UDim2.new(0, 30, 0, 28),
-		Position = UDim2.new(1, -35, 0, 0),
-		BackgroundTransparency = 1,
-		Text = "×",
-		TextColor3 = Color3.fromRGB(255, 80, 80),
-		TextSize = 26,
-		FontFace = Library.Text.Font,
-		AutoButtonColor = false,
-		Parent = TitleButtons
-	})
-
-	-- Stroke cho nút
-	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = MinimizeBtn})
-	Utility:Render("UIStroke", {Color = "BorderInner", Parent = MinimizeBtn})
-	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = CloseBtn})
-	Utility:Render("UIStroke", {Color = "BorderInner", Parent = CloseBtn})
-
-	-- Biến hỗ trợ thu nhỏ
-	local minimized = false
-	local originalSize = NewWindow["Window"].Size
-
-	-- Nút Thu nhỏ
-	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
-		minimized = not minimized
-		if minimized then
-			NewWindow["Window"]["PageContentsContainer"].Visible = false
-			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
-			MinimizeBtn.Text = "+"
-		else
-			NewWindow["Window"]["PageContentsContainer"].Visible = true
-			NewWindow["Window"].Size = originalSize
-			MinimizeBtn.Text = "–"
-		end
-	end)
-
-	-- Nút Đóng (hủy GUI)
-	Utility:storeEvent(CloseBtn.MouseButton1Click, function()
-		window:Abort()
-	end)
-
-	-- Hover effect
-	local function AddHover(btn, normalColor)
-		btn.MouseEnter:Connect(function()
-			ts:Create(btn, Utility.TweenInfo, {TextColor3 = Utility.Theme.Accent}):Play()
-		end)
-		btn.MouseLeave:Connect(function()
-			ts:Create(btn, Utility.TweenInfo, {TextColor3 = normalColor}):Play()
-		end)
-	end
-	AddHover(MinimizeBtn, Utility.Theme.Text)
-	AddHover(CloseBtn, Color3.fromRGB(255, 80, 80))
 	return setmetatable(window,Library)
 end
 function Library:Page(properties)
