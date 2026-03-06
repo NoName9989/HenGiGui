@@ -931,7 +931,6 @@ function Library:Window(properties)
 		setmetatable(Library,nil)
 	end
 	window.MainFrame = NewWindow["Window"]
-
 	-- ==================== NÚT THU NHỎ & ĐÓNG MENU + TIÊU ĐỀ KHI THU NHỎ ====================
 	local TitleButtons = Utility:Render("Frame", {
 		Name = "TitleButtons",
@@ -1048,8 +1047,8 @@ function Library:Window(properties)
 
 	return setmetatable(window,Library)
 end
-		return setmetatable(window,Library)
-end
+
+--Cách
 function Library:Page(properties)
 	local properties = properties or {}
 	local page = {
