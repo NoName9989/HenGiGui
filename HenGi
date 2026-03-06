@@ -893,7 +893,6 @@ function Library:Window(properties)
 	end
 
 	window.MainFrame = NewWindow["Window"]
-
 	-- ==================== Ô VUÔNG KHI THU NHỎ + NÚT ĐÓNG ====================
 	local SideBar = NewWindow["Window"]["SideBar"]
 	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
