@@ -932,14 +932,14 @@ function Library:Window(properties)
 		setmetatable(Library,nil)
 	end
 
-			window.MainFrame = NewWindow["Window"]
+		window.MainFrame = NewWindow["Window"]
 
-	-- ==================== SETUP TITLE (KHÔNG ĐỘNG TITLE GỐC) ====================
+	-- ==================== TITLE GỐC (KHÔNG BAO GIỜ ĐỘNG) ====================
 	local SideBar = NewWindow["Window"]["SideBar"]
 	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
-	local OriginalTitle = SideBar["InterfaceTitle"]   -- title gốc, KHÔNG bao giờ thay đổi
+	local OriginalTitle = SideBar["InterfaceTitle"]   -- title gốc, giữ nguyên 100%
 
-	-- Tạo title riêng cho khi thu nhỏ (để tránh lệch vĩnh viễn)
+	-- ==================== TITLE RIÊNG CHO THU NHỎ (để tránh lệch vĩnh viễn) ====================
 	local MinTitle = Utility:Render("TextLabel", {
 		Name = "MinTitle",
 		BackgroundTransparency = 1,
@@ -998,7 +998,6 @@ function Library:Window(properties)
 	local minimized = false
 	local originalSize = NewWindow["Window"].Size
 
-	-- ==================== MINIMIZE LOGIC (sạch sẽ, không lệch) ====================
 	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
 		minimized = not minimized
 		if minimized then
