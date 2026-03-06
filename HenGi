@@ -932,16 +932,14 @@ function Library:Window(properties)
 		setmetatable(Library,nil)
 	end
 
-	window.MainFrame = NewWindow["Window"]
+		window.MainFrame = NewWindow["Window"]
 
-	-- ==================== CÁC BIẾN GỐC ĐỂ RESET ====================
+	-- ==================== CÁC BIẾN GỐC ====================
 	local SideBar = NewWindow["Window"]["SideBar"]
 	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
-	local InterfaceTitle = SideBar["InterfaceTitle"]
-	local originalTitlePos = UDim2.new(0, 0, 0, 0)
-	local originalTitleSize = UDim2.new(0, 164, 0, 30)
+	local InterfaceTitle = SideBar["InterfaceTitle"]  -- title gốc (không động vào)
 
-	-- ==================== NÚT THU NHỎ + ĐÓNG + TIÊU ĐỀ ĐẸP ====================
+	-- ==================== NÚT THU NHỎ + ĐÓNG ====================
 	local TitleButtons = Utility:Render("Frame", {
 		Name = "TitleButtons",
 		Size = UDim2.new(0, 70, 0, 28),
@@ -981,6 +979,22 @@ function Library:Window(properties)
 	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = CloseBtn})
 	Utility:Render("UIStroke", {Color = "BorderInner", Parent = CloseBtn})
 
+	-- ==================== TITLE RIÊNG KHI THU NHỎ (không động title gốc) ====================
+	local MinTitle = Utility:Render("TextLabel", {
+		Name = "MinTitle",
+		BackgroundTransparency = 1,
+		Text = window.Title,
+		TextColor3 = "Text",
+		FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold),
+		TextSize = 18,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Center,
+		Size = UDim2.new(0.65, 0, 1, 0),
+		Position = UDim2.new(0, 15, 0, 8),
+		Visible = false,
+		Parent = NewWindow["Window"]
+	})
+
 	local minimized = false
 	local originalSize = NewWindow["Window"].Size
 
@@ -989,21 +1003,15 @@ function Library:Window(properties)
 		if minimized then
 			SideBar.Visible = false
 			PageContainer.Visible = false
-			InterfaceTitle.Parent = NewWindow["Window"]
-			InterfaceTitle.Position = UDim2.new(0, 18, 0, 8)
-			InterfaceTitle.Size = UDim2.new(0.65, 0, 1, 0)
-			InterfaceTitle.TextYAlignment = Enum.TextYAlignment.Center
-			InterfaceTitle.TextXAlignment = Enum.TextXAlignment.Left
+			InterfaceTitle.Visible = false
+			MinTitle.Visible = true
 			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
 			MinimizeBtn.Text = "+"
 		else
-			InterfaceTitle.Parent = SideBar
-			InterfaceTitle.Position = originalTitlePos
-			InterfaceTitle.Size = originalTitleSize
-			InterfaceTitle.TextYAlignment = Enum.TextYAlignment.Bottom
-			InterfaceTitle.TextXAlignment = Enum.TextXAlignment.Left
 			SideBar.Visible = true
 			PageContainer.Visible = true
+			InterfaceTitle.Visible = true
+			MinTitle.Visible = false
 			NewWindow["Window"].Size = originalSize
 			MinimizeBtn.Text = "–"
 		end
@@ -1020,7 +1028,7 @@ function Library:Window(properties)
 	AddHover(MinimizeBtn, Utility.Theme.Text)
 	AddHover(CloseBtn, Color3.fromRGB(255, 80, 80))
 
-	-- ==================== KÉO THẢ (DRAG) CHO ĐIỆN THOẠI ====================
+	-- ==================== KÉO THẢ (DRAG) CHO ĐIỆN THOẠI + PC ====================
 	local dragging = false
 	local dragStart
 	local startPos
@@ -1042,6 +1050,7 @@ function Library:Window(properties)
 	end
 
 	Utility:storeEvent(InterfaceTitle.InputBegan, startDrag)
+	Utility:storeEvent(MinTitle.InputBegan, startDrag)
 	Utility:storeEvent(TitleButtons.InputBegan, startDrag)
 
 	Utility:storeEvent(UserInputService.InputChanged, function(input)
