@@ -859,54 +859,9 @@ OptionButton = function()
 			Parent = OptionFrame 
 		}) 
 		return OptionFrame
+
+
 	end,
-	function Sections:Button(properties)
-	properties = properties or {}
-	local Button = {
-		Title = properties.Title or "Button",
-		Callback = properties.Callback or function() end
-	}
-
-	local ButtonContainer = Library.RenderModules:ButtonContainer()
-	ButtonContainer.Parent = self.Container
-	ButtonContainer["ButtonBackground"]["ButtonTitle"].Text = Button.Title
-
-	-- Làm đẹp thêm (rounded + gradient nhẹ)
-	local Corner = Utility:Render("UICorner", {CornerRadius = UDim.new(0, 10), Parent = ButtonContainer["ButtonBackground"]})
-	local Gradient = Utility:Render("UIGradient", {
-		Color = ColorSequence.new{
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(180,180,180))
-		},
-		Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 0.85), NumberSequenceKeypoint.new(1, 0.95)},
-		Parent = ButtonContainer["ButtonBackground"]
-	})
-
-	-- Hover + Press effect đẹp
-	Utility:storeEvent(ButtonContainer.MouseButton1Down, function()
-		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.1), {
-			Size = UDim2.new(0.95, 0, 0.95, 0),
-			BackgroundColor3 = Utility.Theme.Accent
-		}):Play()
-		
-		task.delay(0.12, function()
-			ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.25, Enum.EasingStyle.Quint), {
-				Size = UDim2.new(1, 0, 1, 0),
-				BackgroundColor3 = Utility.Theme.LightContrastBackground
-			}):Play()
-		end)
-		
-		Button.Callback()
-	end)
-
-	-- Hover scale nhẹ
-	Utility:storeEvent(ButtonContainer.MouseEnter, function()
-		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.2), {Size = UDim2.new(1.02, 0, 1.02, 0)}):Play()
-	end)
-	Utility:storeEvent(ButtonContainer.MouseLeave, function()
-		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 1, 0)}):Play()
-	end)
-end
 },Library.RenderModules)
 local Tabs = Library.Tabs;
 local Sections = Library.sections;
