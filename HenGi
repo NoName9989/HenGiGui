@@ -1215,85 +1215,75 @@ end
 function Sections:Combo(properties)
 	properties = properties or {}
 	local combo = {
-		Title = properties.Title or properties.title or "Dropdown",
-		List = properties.List or properties.list or {"Option 1", "Option 2"},
-		Value = properties.Value or properties.value or self.List[1],
-		Callback = properties.Callback or properties.callback or function() end,
+		Title = properties.Title or "Multi Select",
+		List = properties.List or {"Option 1", "Option 2"},
+		Value = properties.Value or {},           -- Bảng chứa nhiều mục đã chọn
+		Callback = properties.Callback or function() end,
 		Opened = false,
 	}
 	local DropdownContainer = Library.RenderModules:DropdownContainer()
 	DropdownContainer.Parent = self.Container
 	DropdownContainer["DropdownTitle"].Text = combo.Title
 
+	function combo:UpdateDisplay()
+		DropdownContainer["DropdownBox"]["DropdownValueText"].Text = #combo.Value > 0 and table.concat(combo.Value, ", ") or "None"
+	end
 
 	function combo:SetValue(value)
-		if typeof(value) == "table" then 
-			value = table.unpack(value) 
-		end 
+		if typeof(value) ~= "table" then value = {value} end
 		
-		if table.find(self.Value,value) then 
-			table.remove(self.Value,table.find(self.Value, value))
-		elseif not table.find(self.Value,value) then
-			self.Value[#self.Value + 1] = value
-
-		end
-			DropdownContainer["DropdownBox"]["DropdownValueText"].Text =  table.concat(combo.Value, ", ")
-			for _,Option in pairs(DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]:GetChildren()) do 
-			if  Option.Name == value and  table.find(self.Value,Option.Name)and Option:IsA("TextButton") then 
-					task.spawn(function()
-						ts:Create(Option, Utility.TweenInfo, {BackgroundTransparency = 0.6}):Play()
-						ts:Create(Option["OptionText"], Utility.TweenInfo, {TextColor3 = Utility.Theme.Text, Position = UDim2new(0,13,0,0)}):Play()
-						ts:Create(Option["Indicator"], Utility.TweenInfo, {BackgroundTransparency = 0}):Play()
-						Utility:UpdateObject(Option["OptionText"],"TextColor3",Utility.Theme.Text)
-					end)
-			elseif  Option.Name == value and not table.find(self.Value,Option.Name) and Option:IsA("TextButton") then
-					task.spawn(function()
-						ts:Create(Option, Utility.TweenInfo, {BackgroundTransparency = 1}):Play()
-						ts:Create(Option["OptionText"], Utility.TweenInfo, {TextColor3 = Utility.Theme.Muted, Position = UDim2new(0,10,0,0)}):Play()
-						ts:Create(Option["Indicator"], Utility.TweenInfo, {BackgroundTransparency = 1}):Play()
-						Utility:UpdateObject(Option["OptionText"],"TextColor3",Utility.Theme.Muted)
-					end)
-
-				
+		for _, v in ipairs(value) do
+			local idx = table.find(combo.Value, v)
+			if idx then
+				table.remove(combo.Value, idx)
+			else
+				table.insert(combo.Value, v)
 			end
 		end
-		combo.Callback(combo.Value)
 
-	end
-	function combo:AddOption(NewOption)
-		if typeof(NewOption) == "table" then 
-			NewOption = table.unpack(NewOption) 
-		end 
-		if not table.find(self.List,NewOption) then 
-			table.insert(self.List, NewOption)
+		combo:UpdateDisplay()
+
+		-- Cập nhật màu các option
+		for _, Option in pairs(DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]:GetChildren()) do
+			if Option:IsA("TextButton") then
+				local selected = table.find(combo.Value, Option.Name)
+				Option.BackgroundTransparency = selected and 0.6 or 1
+				Option["OptionText"].TextColor3 = selected and Utility.Theme.Text or Utility.Theme.Muted
+				Option["Indicator"].BackgroundTransparency = selected and 0 or 1
+			end
 		end
+
+		combo.Callback(combo.Value)
+	end
+
+	function combo:AddOption(NewOption)
+		if not table.find(combo.List, NewOption) then table.insert(combo.List, NewOption) end
 		local NewOptionButton = Library.RenderModules:OptionButton()
 		NewOptionButton.Parent = DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]
 		NewOptionButton["OptionText"].Text = tostring(NewOption)
 		NewOptionButton.Name = tostring(NewOption)
-		Utility:storeEvent(NewOptionButton.MouseButton1Click,function()
+
+		Utility:storeEvent(NewOptionButton.MouseButton1Click, function()
 			combo:SetValue(NewOptionButton.Name)
-
 		end)
 	end
 
-	function combo:ToggleListContainer(bool: boolean)
-		task.spawn(function()
-			ts:Create(DropdownContainer["DropdownTitle"], Utility.TweenInfo, {TextColor3 = bool and Utility.Theme.Text or Utility.Theme.Muted }):Play()
-			Utility:UpdateObject(DropdownContainer["DropdownTitle"],"TextColor3",bool and Utility.Theme.Text or Utility.Theme.Muted)
-			DropdownContainer["DropdownBox"]["Anticlick"].Visible = bool
-			self.Opened = bool
-
-		end)
+	function combo:ToggleListContainer(bool)
+		DropdownContainer["DropdownBox"]["Anticlick"].Visible = bool
+		combo.Opened = bool
 	end
-	Utility:storeEvent(DropdownContainer.MouseButton1Down,function()
+
+	Utility:storeEvent(DropdownContainer.MouseButton1Down, function()
 		combo:ToggleListContainer(not combo.Opened)
 	end)
-	for _,option in pairs(combo.List) do
+
+	for _, option in pairs(combo.List) do
 		combo:AddOption(option)
 	end
-		combo:SetValue(combo.Value)
-	
+
+	combo:UpdateDisplay()
+	combo:SetValue(combo.Value)
+
 	return combo
 end
 
