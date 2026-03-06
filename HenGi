@@ -916,13 +916,14 @@ function Library:Window(properties)
 		Library = self,
 	}
 	local NewWindow = self.RenderModules:Window()
-	NewWindow.Parent =  game:GetService("CoreGui") and game.Players.LocalPlayer:WaitForChild("PlayerGui")
+	NewWindow.Parent = game:GetService("CoreGui") or game.Players.LocalPlayer:WaitForChild("PlayerGui")
 	NewWindow["Window"]["SideBar"]["InterfaceTitle"].Text = window.Title
 
-	NewWindow["UIScale"].Scale = camera.ViewportSize.X /  1400	
+	NewWindow["UIScale"].Scale = camera.ViewportSize.X / 1400	
 	Utility:storeEvent(camera:GetPropertyChangedSignal('ViewportSize'),function()
-		NewWindow["UIScale"].Scale = camera.ViewportSize.X /  1400
+		NewWindow["UIScale"].Scale = camera.ViewportSize.X / 1400
 	end)
+
 	function window:Abort()
 		for i, v in ipairs(Library.Connections) do
 			v:Disconnect()
@@ -930,8 +931,10 @@ function Library:Window(properties)
 		NewWindow:Destroy()
 		setmetatable(Library,nil)
 	end
+
 	window.MainFrame = NewWindow["Window"]
-	-- ==================== NÚT THU NHỎ & ĐÓNG MENU + TIÊU ĐỀ KHI THU NHỎ ====================
+
+	-- ==================== NÚT THU NHỎ + ĐÓNG + TIÊU ĐỀ ĐẸP ====================
 	local TitleButtons = Utility:Render("Frame", {
 		Name = "TitleButtons",
 		Size = UDim2.new(0, 70, 0, 28),
@@ -975,23 +978,21 @@ function Library:Window(properties)
 	local originalSize = NewWindow["Window"].Size
 	local SideBar = NewWindow["Window"]["SideBar"]
 	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
-	local InterfaceTitle = SideBar["InterfaceTitle"]  -- lưu gốc để di chuyển
+	local InterfaceTitle = SideBar["InterfaceTitle"]
 
 	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
 		minimized = not minimized
 		if minimized then
-			-- THU NHỎ: chỉ hiện thanh tiêu đề đẹp
 			SideBar.Visible = false
 			PageContainer.Visible = false
-			InterfaceTitle.Parent = NewWindow["Window"]           -- di chuyển tên GUI ra ngoài
+			InterfaceTitle.Parent = NewWindow["Window"]
 			InterfaceTitle.Position = UDim2.new(0, 15, 0, 8)
-			InterfaceTitle.Size = UDim2.new(0.6, 0, 0, 28)
+			InterfaceTitle.Size = UDim2.new(0.65, 0, 0, 28)
 			InterfaceTitle.TextYAlignment = Enum.TextYAlignment.Center
 			InterfaceTitle.TextXAlignment = Enum.TextXAlignment.Left
 			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
 			MinimizeBtn.Text = "+"
 		else
-			-- PHỤC HỒI
 			InterfaceTitle.Parent = SideBar
 			InterfaceTitle.Position = UDim2.new(0, 0, 0, 0)
 			InterfaceTitle.Size = UDim2.new(0, 164, 0, 30)
@@ -1014,7 +1015,7 @@ function Library:Window(properties)
 	AddHover(MinimizeBtn, Utility.Theme.Text)
 	AddHover(CloseBtn, Color3.fromRGB(255, 80, 80))
 
-	-- ==================== KÉO THẢ (DRAG) TRÊN ĐIỆN THOẠI + PC ====================
+	-- ==================== KÉO THẢ (DRAG) CHO ĐIỆN THOẠI ====================
 	local dragging = false
 	local dragStart
 	local startPos
@@ -1035,7 +1036,6 @@ function Library:Window(properties)
 		end
 	end
 
-	-- Kéo trên thanh tiêu đề (cả khi bình thường và khi thu nhỏ)
 	Utility:storeEvent(InterfaceTitle.InputBegan, startDrag)
 	Utility:storeEvent(TitleButtons.InputBegan, startDrag)
 
@@ -1047,7 +1047,6 @@ function Library:Window(properties)
 
 	return setmetatable(window,Library)
 end
-
 function Library:Page(properties)
 	local properties = properties or {}
 	local page = {
