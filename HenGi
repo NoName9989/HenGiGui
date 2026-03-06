@@ -862,6 +862,45 @@ Library.RenderModules = setmetatable({
 
 
 	end,
+ButtonContainer = function()
+		local ButtonContainer = Utility:Render("TextButton", {  
+			BackgroundTransparency = 1,
+			Text = "",
+			Name = "ButtonContainer",
+			Size = UDim2.new(1, 0, 0, 30),
+			BorderSizePixel = 0,
+		}) 
+		local ButtonBackground = Utility:Render("Frame", {  
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Name = "ButtonBackground",
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Size = UDim2.new(1, -4, 1, 0),
+			BorderSizePixel = 0,
+			BackgroundColor3 = "LightContrastBackground",
+			Parent = ButtonContainer 
+		}) 
+		local InnerStroke = Utility:Render("UIStroke", {  
+			Color = "BorderInner",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = ButtonBackground 
+		}) 
+		local OuterStroke = Utility:Render("UIStroke", {  
+			Color = "BorderOuter",
+			Parent = ButtonBackground 
+		}) 
+		local ButtonTitle = Utility:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+			TextColor3 = "Text",
+			TextStrokeTransparency = 0,
+			Name = "ButtonTitle",
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextSize = 13,
+			Parent = ButtonBackground 
+		}) 
+		return ButtonContainer
+	end,
 },Library.RenderModules)
 local Tabs = Library.Tabs;
 local Sections = Library.sections;
@@ -893,6 +932,81 @@ function Library:Window(properties)
 	end
 
 	window.MainFrame = NewWindow["Window"]
+-- ==================== NÚT THU NHỎ & ĐÓNG MENU (góc trên bên phải) ====================
+	local TitleButtons = Utility:Render("Frame", {
+		Name = "TitleButtons",
+		Size = UDim2.new(0, 70, 0, 28),
+		Position = UDim2.new(1, -80, 0, 6),
+		BackgroundTransparency = 1,
+		Parent = NewWindow["Window"]
+	})
+
+	local MinimizeBtn = Utility:Render("TextButton", {
+		Name = "MinimizeBtn",
+		Size = UDim2.new(0, 30, 0, 28),
+		Position = UDim2.new(0, 0, 0, 0),
+		BackgroundTransparency = 1,
+		Text = "–",
+		TextColor3 = "Text",
+		TextSize = 24,
+		FontFace = Library.Text.Font,
+		AutoButtonColor = false,
+		Parent = TitleButtons
+	})
+
+	local CloseBtn = Utility:Render("TextButton", {
+		Name = "CloseBtn",
+		Size = UDim2.new(0, 30, 0, 28),
+		Position = UDim2.new(1, -35, 0, 0),
+		BackgroundTransparency = 1,
+		Text = "×",
+		TextColor3 = Color3.fromRGB(255, 80, 80),
+		TextSize = 26,
+		FontFace = Library.Text.Font,
+		AutoButtonColor = false,
+		Parent = TitleButtons
+	})
+
+	-- Stroke cho nút
+	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = MinimizeBtn})
+	Utility:Render("UIStroke", {Color = "BorderInner", Parent = MinimizeBtn})
+	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = CloseBtn})
+	Utility:Render("UIStroke", {Color = "BorderInner", Parent = CloseBtn})
+
+	-- Biến hỗ trợ thu nhỏ
+	local minimized = false
+	local originalSize = NewWindow["Window"].Size
+
+	-- Nút Thu nhỏ
+	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
+		minimized = not minimized
+		if minimized then
+			NewWindow["Window"]["PageContentsContainer"].Visible = false
+			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
+			MinimizeBtn.Text = "+"
+		else
+			NewWindow["Window"]["PageContentsContainer"].Visible = true
+			NewWindow["Window"].Size = originalSize
+			MinimizeBtn.Text = "–"
+		end
+	end)
+
+	-- Nút Đóng (hủy GUI)
+	Utility:storeEvent(CloseBtn.MouseButton1Click, function()
+		window:Abort()
+	end)
+
+	-- Hover effect
+	local function AddHover(btn, normalColor)
+		btn.MouseEnter:Connect(function()
+			ts:Create(btn, Utility.TweenInfo, {TextColor3 = Utility.Theme.Accent}):Play()
+		end)
+		btn.MouseLeave:Connect(function()
+			ts:Create(btn, Utility.TweenInfo, {TextColor3 = normalColor}):Play()
+		end)
+	end
+	AddHover(MinimizeBtn, Utility.Theme.Text)
+	AddHover(CloseBtn, Color3.fromRGB(255, 80, 80))
 	return setmetatable(window,Library)
 end
 function Library:Page(properties)
@@ -1265,6 +1379,26 @@ function Sections:Dropdown(properties)
 	end
 	dropdown:SetValue(dropdown.Value)
 	return dropdown
+end
+
+function Sections:Button(properties)
+	properties = properties or {}
+	local Button = {
+		Title = properties.Title or properties.title or "Button",
+		Callback = properties.Callback or properties.callback or function() end
+	}
+	local ButtonContainer = Library.RenderModules:ButtonContainer()
+	ButtonContainer.Parent = self.Container
+	ButtonContainer["ButtonBackground"]["ButtonTitle"].Text = Button.Title
+
+	Utility:storeEvent(ButtonContainer.MouseButton1Down, function()
+		task.spawn(function()
+			ts:Create(ButtonContainer["ButtonBackground"], Utility.TweenInfo, {BackgroundColor3 = Utility.Theme.Accent}):Play()
+			task.wait(0.1)
+			ts:Create(ButtonContainer["ButtonBackground"], Utility.TweenInfo, {BackgroundColor3 = Utility.Theme.LightContrastBackground}):Play()
+		end)
+		Button.Callback()
+	end)
 end
 
 return Library
