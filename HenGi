@@ -930,9 +930,9 @@ function Library:Window(properties)
 		NewWindow:Destroy()
 		setmetatable(Library,nil)
 	end
-
 	window.MainFrame = NewWindow["Window"]
--- ==================== NÚT THU NHỎ & ĐÓNG MENU ====================
+
+	-- ==================== NÚT THU NHỎ & ĐÓNG MENU + TIÊU ĐỀ KHI THU NHỎ ====================
 	local TitleButtons = Utility:Render("Frame", {
 		Name = "TitleButtons",
 		Size = UDim2.new(0, 70, 0, 28),
@@ -976,15 +976,27 @@ function Library:Window(properties)
 	local originalSize = NewWindow["Window"].Size
 	local SideBar = NewWindow["Window"]["SideBar"]
 	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
+	local InterfaceTitle = SideBar["InterfaceTitle"]  -- lưu gốc để di chuyển
 
 	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
 		minimized = not minimized
 		if minimized then
+			-- THU NHỎ: chỉ hiện thanh tiêu đề đẹp
 			SideBar.Visible = false
 			PageContainer.Visible = false
+			InterfaceTitle.Parent = NewWindow["Window"]           -- di chuyển tên GUI ra ngoài
+			InterfaceTitle.Position = UDim2.new(0, 15, 0, 8)
+			InterfaceTitle.Size = UDim2.new(0.6, 0, 0, 28)
+			InterfaceTitle.TextYAlignment = Enum.TextYAlignment.Center
+			InterfaceTitle.TextXAlignment = Enum.TextXAlignment.Left
 			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
 			MinimizeBtn.Text = "+"
 		else
+			-- PHỤC HỒI
+			InterfaceTitle.Parent = SideBar
+			InterfaceTitle.Position = UDim2.new(0, 0, 0, 0)
+			InterfaceTitle.Size = UDim2.new(0, 164, 0, 30)
+			InterfaceTitle.TextYAlignment = Enum.TextYAlignment.Bottom
 			SideBar.Visible = true
 			PageContainer.Visible = true
 			NewWindow["Window"].Size = originalSize
@@ -1003,9 +1015,8 @@ function Library:Window(properties)
 	AddHover(MinimizeBtn, Utility.Theme.Text)
 	AddHover(CloseBtn, Color3.fromRGB(255, 80, 80))
 
-	-- ==================== DRAGGABLE CHO ĐIỆN THOẠI (Touch) + PC ====================
+	-- ==================== KÉO THẢ (DRAG) TRÊN ĐIỆN THOẠI + PC ====================
 	local dragging = false
-	local dragInput
 	local dragStart
 	local startPos
 
@@ -1014,31 +1025,30 @@ function Library:Window(properties)
 		NewWindow["Window"].Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 	end
 
-	local titleBar = NewWindow["Window"]["SideBar"]["InterfaceTitle"]
-
 	local function startDrag(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			dragStart = input.Position
 			startPos = NewWindow["Window"].Position
-
 			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
+				if input.UserInputState == Enum.UserInputState.End then dragging = false end
 			end)
 		end
 	end
 
-	Utility:storeEvent(titleBar.InputBegan, startDrag)
-	Utility:storeEvent(TitleButtons.InputBegan, startDrag)   -- kéo trên nút cũng được
+	-- Kéo trên thanh tiêu đề (cả khi bình thường và khi thu nhỏ)
+	Utility:storeEvent(InterfaceTitle.InputBegan, startDrag)
+	Utility:storeEvent(TitleButtons.InputBegan, startDrag)
 
 	Utility:storeEvent(UserInputService.InputChanged, function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			update(input)
 		end
 	end)
+
 	return setmetatable(window,Library)
+end
+		return setmetatable(window,Library)
 end
 function Library:Page(properties)
 	local properties = properties or {}
