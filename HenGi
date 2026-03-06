@@ -908,7 +908,7 @@ function Sections:Button(properties)
 	Utility:storeEvent(ButtonContainer.MouseLeave, function()
 		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 	end)
-end
+end,
 },Library.RenderModules)
 local Tabs = Library.Tabs;
 local Sections = Library.sections;
