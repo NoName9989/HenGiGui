@@ -934,26 +934,7 @@ function Library:Window(properties)
 
 		window.MainFrame = NewWindow["Window"]
 
-	-- ==================== TITLE GỐC + TITLE THU NHỎ ====================
-	local SideBar = NewWindow["Window"]["SideBar"]
-	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
-	local OriginalTitle = SideBar["InterfaceTitle"]
-
-	local MinTitle = Utility:Render("TextLabel", {
-		Name = "MinTitle",
-		BackgroundTransparency = 1,
-		Text = window.Title,
-		TextColor3 = "Text",
-		FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold),
-		TextSize = 18,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.new(0.65, 0, 1, 0),
-		Position = UDim2.new(0, 20, 0, 8),
-		Visible = false,
-		Parent = NewWindow["Window"]
-	})
-
-	-- ==================== NÚT THU NHỎ + ĐÓNG (luôn hiện) ====================
+	-- ==================== NÚT THU NHỎ + ĐÓNG (không chữ) ====================
 	local TitleButtons = Utility:Render("Frame", {
 		Name = "TitleButtons",
 		Size = UDim2.new(0, 70, 0, 28),
@@ -995,21 +976,21 @@ function Library:Window(properties)
 
 	local minimized = false
 	local originalSize = NewWindow["Window"].Size
+	local SideBar = NewWindow["Window"]["SideBar"]
+	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
 
 	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
 		minimized = not minimized
 		if minimized then
 			SideBar.Visible = false
 			PageContainer.Visible = false
-			OriginalTitle.Visible = false
-			MinTitle.Visible = true
+			NewWindow["Window"]["SideBar"]["InterfaceTitle"].Visible = false
 			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
 			MinimizeBtn.Text = "+"
 		else
 			SideBar.Visible = true
 			PageContainer.Visible = true
-			OriginalTitle.Visible = true
-			MinTitle.Visible = false
+			NewWindow["Window"]["SideBar"]["InterfaceTitle"].Visible = true
 			NewWindow["Window"].Size = originalSize
 			MinimizeBtn.Text = "–"
 		end
@@ -1026,39 +1007,14 @@ function Library:Window(properties)
 	AddHover(MinimizeBtn, Utility.Theme.Text)
 	AddHover(CloseBtn, Color3.fromRGB(255, 80, 80))
 
-	-- ==================== DRAG ====================
+	-- ==================== KÉO THẢ ====================
 	local dragging = false
 	local dragStart
 	local startPos
 
 	local function update(input)
 		local delta = input.Position - dragStart
-		NewWindow["Window"].Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-	end
-
-	local function startDrag(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			dragStart = input.Position
-			startPos = NewWindow["Window"].Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then dragging = false end
-			end)
-		end
-	end
-
-	Utility:storeEvent(OriginalTitle.InputBegan, startDrag)
-	Utility:storeEvent(MinTitle.InputBegan, startDrag)
-	Utility:storeEvent(TitleButtons.InputBegan, startDrag)
-
-	Utility:storeEvent(UserInputService.InputChanged, function(input)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			update(input)
-		end
-	end)
-
-	return setmetatable(window,Library)
-end
+		NewWindow["Window"].Position = UDim
 function Library:Page(properties)
 	local properties = properties or {}
 	local page = {
