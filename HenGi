@@ -934,6 +934,13 @@ function Library:Window(properties)
 
 	window.MainFrame = NewWindow["Window"]
 
+	-- ==================== CÁC BIẾN GỐC ĐỂ RESET ====================
+	local SideBar = NewWindow["Window"]["SideBar"]
+	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
+	local InterfaceTitle = SideBar["InterfaceTitle"]
+	local originalTitlePos = UDim2.new(0, 0, 0, 0)
+	local originalTitleSize = UDim2.new(0, 164, 0, 30)
+
 	-- ==================== NÚT THU NHỎ + ĐÓNG + TIÊU ĐỀ ĐẸP ====================
 	local TitleButtons = Utility:Render("Frame", {
 		Name = "TitleButtons",
@@ -976,9 +983,6 @@ function Library:Window(properties)
 
 	local minimized = false
 	local originalSize = NewWindow["Window"].Size
-	local SideBar = NewWindow["Window"]["SideBar"]
-	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
-	local InterfaceTitle = SideBar["InterfaceTitle"]
 
 	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
 		minimized = not minimized
@@ -986,17 +990,18 @@ function Library:Window(properties)
 			SideBar.Visible = false
 			PageContainer.Visible = false
 			InterfaceTitle.Parent = NewWindow["Window"]
-			InterfaceTitle.Position = UDim2.new(0, 15, 0, 8)
-			InterfaceTitle.Size = UDim2.new(0.65, 0, 0, 28)
+			InterfaceTitle.Position = UDim2.new(0, 18, 0, 8)
+			InterfaceTitle.Size = UDim2.new(0.65, 0, 1, 0)
 			InterfaceTitle.TextYAlignment = Enum.TextYAlignment.Center
 			InterfaceTitle.TextXAlignment = Enum.TextXAlignment.Left
 			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
 			MinimizeBtn.Text = "+"
 		else
 			InterfaceTitle.Parent = SideBar
-			InterfaceTitle.Position = UDim2.new(0, 0, 0, 0)
-			InterfaceTitle.Size = UDim2.new(0, 164, 0, 30)
+			InterfaceTitle.Position = originalTitlePos
+			InterfaceTitle.Size = originalTitleSize
 			InterfaceTitle.TextYAlignment = Enum.TextYAlignment.Bottom
+			InterfaceTitle.TextXAlignment = Enum.TextXAlignment.Left
 			SideBar.Visible = true
 			PageContainer.Visible = true
 			NewWindow["Window"].Size = originalSize
