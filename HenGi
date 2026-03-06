@@ -824,6 +824,42 @@ Library.RenderModules = setmetatable({
 		return DropdownContainer
 
 	end,
+OptionButton = function()
+		local OptionFrame = Utility:Render("TextButton", {  
+			Name = "OptionFrame",
+			BackgroundTransparency = 1,
+			Text = "",
+			AutoButtonColor = false,
+			BackgroundColor3 = "Accent",
+			Size = UDim2.new(1, 0, 0, 16),
+			ZIndex = 2,
+			BorderSizePixel = 0,
+		}) 
+		local OptionText = Utility:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+			TextColor3 = "Muted",
+			Name = "OptionText",
+			TextStrokeTransparency = 0,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 200, 1, 0),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Position = UDim2.new(0, 10, 0, 0),
+			ZIndex = 2,
+			TextSize = 12,
+			Parent = OptionFrame 
+		}) 
+		local Indicator = Utility:Render("Frame", {  
+			Name = "Indicator",
+			BackgroundTransparency = 1,
+			Size = UDim2.new(0, 2, 1, 0),
+			ZIndex = 2,
+			BorderSizePixel = 0,
+			BackgroundColor3 = "Accent",
+			Parent = OptionFrame 
+		}) 
+		return OptionFrame
+	end,
 	function Sections:Button(properties)
 	properties = properties or {}
 	local Button = {
