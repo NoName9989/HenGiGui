@@ -893,6 +893,112 @@ function Library:Window(properties)
 	end
 
 	window.MainFrame = NewWindow["Window"]
+
+	-- ==================== THANH THU NHỎ KIỂU CŨ (không chữ) ====================
+	local SideBar = NewWindow["Window"]["SideBar"]
+	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
+	local OriginalTitle = SideBar["InterfaceTitle"]
+
+	local TitleButtons = Utility:Render("Frame", {
+		Name = "TitleButtons",
+		Size = UDim2.new(0, 70, 0, 28),
+		Position = UDim2.new(1, -80, 0, 8),
+		BackgroundTransparency = 1,
+		Parent = NewWindow["Window"]
+	})
+
+	local MinimizeBtn = Utility:Render("TextButton", {
+		Name = "MinimizeBtn",
+		Size = UDim2.new(0, 30, 0, 28),
+		Position = UDim2.new(0, 0, 0, 0),
+		BackgroundTransparency = 1,
+		Text = "–",
+		TextColor3 = "Text",
+		TextSize = 24,
+		FontFace = Library.Text.Font,
+		AutoButtonColor = false,
+		Parent = TitleButtons
+	})
+
+	local CloseBtn = Utility:Render("TextButton", {
+		Name = "CloseBtn",
+		Size = UDim2.new(0, 30, 0, 28),
+		Position = UDim2.new(1, -35, 0, 0),
+		BackgroundTransparency = 1,
+		Text = "×",
+		TextColor3 = Color3.fromRGB(255, 80, 80),
+		TextSize = 26,
+		FontFace = Library.Text.Font,
+		AutoButtonColor = false,
+		Parent = TitleButtons
+	})
+
+	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = MinimizeBtn})
+	Utility:Render("UIStroke", {Color = "BorderInner", Parent = MinimizeBtn})
+	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = CloseBtn})
+	Utility:Render("UIStroke", {Color = "BorderInner", Parent = CloseBtn})
+
+	local minimized = false
+	local originalSize = NewWindow["Window"].Size
+
+	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
+		minimized = not minimized
+		if minimized then
+			SideBar.Visible = false
+			PageContainer.Visible = false
+			OriginalTitle.Visible = false
+			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
+			MinimizeBtn.Text = "+"
+		else
+			SideBar.Visible = true
+			PageContainer.Visible = true
+			OriginalTitle.Visible = true
+			NewWindow["Window"].Size = originalSize
+			MinimizeBtn.Text = "–"
+		end
+	end)
+
+	Utility:storeEvent(CloseBtn.MouseButton1Click, function()
+		window:Abort()
+	end)
+
+	local function AddHover(btn, normalColor)
+		btn.MouseEnter:Connect(function() ts:Create(btn, Utility.TweenInfo, {TextColor3 = Utility.Theme.Accent}):Play() end)
+		btn.MouseLeave:Connect(function() ts:Create(btn, Utility.TweenInfo, {TextColor3 = normalColor}):Play() end)
+	end
+	AddHover(MinimizeBtn, Utility.Theme.Text)
+	AddHover(CloseBtn, Color3.fromRGB(255, 80, 80))
+
+	-- ==================== KÉO THẢ ====================
+	local dragging = false
+	local dragStart
+	local startPos
+
+	local function update(input)
+		local delta = input.Position - dragStart
+		NewWindow["Window"].Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+
+	local function startDrag(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = NewWindow["Window"].Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then dragging = false end
+			end)
+		end
+	end
+
+	Utility:storeEvent(OriginalTitle.InputBegan, startDrag)
+	Utility:storeEvent(TitleButtons.InputBegan, startDrag)
+
+	Utility:storeEvent(UserInputService.InputChanged, function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			update(input)
+		end
+	end)
+
 	return setmetatable(window,Library)
 end
 function Library:Page(properties)
