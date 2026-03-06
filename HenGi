@@ -934,23 +934,10 @@ function Library:Window(properties)
 
 		window.MainFrame = NewWindow["Window"]
 
-	-- ==================== TITLE GỐC (KHÔNG ĐỘNG) ====================
+	-- ==================== TITLE GỐC + TITLE THU NHỎ ====================
 	local SideBar = NewWindow["Window"]["SideBar"]
 	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
 	local OriginalTitle = SideBar["InterfaceTitle"]
-
-	-- ==================== THANH THU NHỎ CÓ NỀN ĐẸP ====================
-	local MinBar = Utility:Render("Frame", {
-		Name = "MinBar",
-		Size = UDim2.new(1, 0, 0, 45),
-		BackgroundColor3 = "DarkContrastBackground",
-		BorderSizePixel = 0,
-		Visible = false,
-		Parent = NewWindow["Window"]
-	})
-
-	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = MinBar})
-	Utility:Render("UIStroke", {Color = "BorderInner", Parent = MinBar})
 
 	local MinTitle = Utility:Render("TextLabel", {
 		Name = "MinTitle",
@@ -960,17 +947,19 @@ function Library:Window(properties)
 		FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold),
 		TextSize = 18,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.new(1, -95, 1, 0),
-		Position = UDim2.new(0, 25, 0, 0),   -- ← anh có thể chỉnh số 25 lên 30 hoặc xuống 20 nếu vẫn lệch
-		Parent = MinBar
+		Size = UDim2.new(0.65, 0, 1, 0),
+		Position = UDim2.new(0, 20, 0, 8),
+		Visible = false,
+		Parent = NewWindow["Window"]
 	})
 
+	-- ==================== NÚT THU NHỎ + ĐÓNG (luôn hiện) ====================
 	local TitleButtons = Utility:Render("Frame", {
 		Name = "TitleButtons",
 		Size = UDim2.new(0, 70, 0, 28),
 		Position = UDim2.new(1, -80, 0, 8),
 		BackgroundTransparency = 1,
-		Parent = MinBar
+		Parent = NewWindow["Window"]
 	})
 
 	local MinimizeBtn = Utility:Render("TextButton", {
@@ -1013,14 +1002,14 @@ function Library:Window(properties)
 			SideBar.Visible = false
 			PageContainer.Visible = false
 			OriginalTitle.Visible = false
-			MinBar.Visible = true
+			MinTitle.Visible = true
 			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
 			MinimizeBtn.Text = "+"
 		else
 			SideBar.Visible = true
 			PageContainer.Visible = true
 			OriginalTitle.Visible = true
-			MinBar.Visible = false
+			MinTitle.Visible = false
 			NewWindow["Window"].Size = originalSize
 			MinimizeBtn.Text = "–"
 		end
@@ -1059,7 +1048,7 @@ function Library:Window(properties)
 	end
 
 	Utility:storeEvent(OriginalTitle.InputBegan, startDrag)
-	Utility:storeEvent(MinBar.InputBegan, startDrag)
+	Utility:storeEvent(MinTitle.InputBegan, startDrag)
 	Utility:storeEvent(TitleButtons.InputBegan, startDrag)
 
 	Utility:storeEvent(UserInputService.InputChanged, function(input)
