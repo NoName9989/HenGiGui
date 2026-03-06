@@ -931,8 +931,7 @@ function Library:Window(properties)
 		NewWindow:Destroy()
 		setmetatable(Library,nil)
 	end
-
-		window.MainFrame = NewWindow["Window"]
+	window.MainFrame = NewWindow["Window"]
 
 	-- ==================== NÚT THU NHỎ + ĐÓNG (không chữ) ====================
 	local TitleButtons = Utility:Render("Frame", {
@@ -1015,125 +1014,7 @@ function Library:Window(properties)
 	local function update(input)
 		local delta = input.Position - dragStart
 		NewWindow["Window"].Position = UDim
-function Library:Page(properties)
-	local properties = properties or {}
-	local page = {
-		Title = properties.Title or properties.title or "Tab",
-		Image = properties.Image or properties.image or false,
-		UseSubtabs = properties.SubPages or false,
-		SubtabFrame = nil,
-		Filled = properties.Filled or properties.filled or false,
-		window = self,
-		Pagescontainer = nil,
-	}
-	local NewTab = page.window.Library.RenderModules:TabButton()
-	NewTab.Parent = page.window.MainFrame["SideBar"]["TabContainer"]
-	NewTab["TabTitle"].Text = page.Title
-	NewTab["TabIcon"].Image = typeof(page.Image) == "string" and page.Image or ""
-	NewTab["TabIcon"].Visible = true or page.Image == false and false
-	NewTab.Name = page.Title
-
-	local PagesContainer = page.window.Library.RenderModules:PageContainer()
-	PagesContainer.Parent = page.window.MainFrame["PageContentsContainer"]
-	PagesContainer.Name = page.Title
-
-	local NewPage = page.window.Library.RenderModules:PagemoduleContainer()
-	NewPage.Parent = PagesContainer
-
-
-	if page.Filled then 
-		NewPage["Right"]:Destroy()
-		page.Sides = {Left = NewPage["Left"]}
-	end 
-
-	if page.UseSubtabs then
-		NewPage:Destroy()
-		local SubtabContainer = page.window.RenderModules:SubtabContainer()
-		SubtabContainer.Parent = PagesContainer
-		page.Pagescontainer = PagesContainer
-		page.subtabframe = SubtabContainer
-		page.Page = PagesContainer["TabPage"]
-	elseif not page.UseSubtabs and not page.Filled then 
-		page.Sides = {Left = NewPage["Left"], Right = NewPage["Right"]}
-	end
-
-	if not page.UseSubtabs then 
-		PagesContainer["TabPage"]:Destroy()
-
-	end
-
-
-	Utility:storeEvent(page.window.MainFrame["PageContentsContainer"]["PageContentLayout"]:GetPropertyChangedSignal("CurrentPage"),function()
-		task.spawn(function()
-			if page.window.MainFrame["PageContentsContainer"]["PageContentLayout"].CurrentPage.Name == page.Title then
-				ts:Create(NewTab, Utility.TweenInfo, {BackgroundTransparency = 0.65 }):Play()
-				ts:Create(NewTab["OuterStroke"],Utility.TweenInfo, {Transparency = 0}):Play()
-				ts:Create(NewTab["InnerStroke"],Utility.TweenInfo, {Transparency = 0.55}):Play()
-				ts:Create(NewTab["TabIcon"],Utility.TweenInfo, {ImageColor3 = Utility.Theme.Accent}):Play()
-				ts:Create(NewTab["TabTitle"],Utility.TweenInfo, {TextColor3 = Utility.Theme.Text}):Play()
-
-				Utility:UpdateObject(NewTab["TabTitle"], "TextColor3","Text")
-				Utility:UpdateObject(NewTab["TabIcon"], "ImageColor3","Accent")
-			else 
-				ts:Create(NewTab,Utility.TweenInfo, {BackgroundTransparency = 1 }):Play()
-				ts:Create(NewTab["OuterStroke"],Utility.TweenInfo, {Transparency = 1}):Play()
-				ts:Create(NewTab["InnerStroke"],Utility.TweenInfo, {Transparency = 1}):Play()
-				ts:Create(NewTab["TabIcon"],Utility.TweenInfo, {ImageColor3 = Utility.Theme.Muted}):Play()
-				ts:Create(NewTab["TabTitle"],Utility.TweenInfo, {TextColor3 = Utility.Theme.Muted}):Play()
-
-				Utility:UpdateObject(NewTab["TabTitle"], "TextColor3","Muted")
-				Utility:UpdateObject(NewTab["TabIcon"], "ImageColor3","Muted")
-			end
-		end)
-	end)
-	Utility:storeEvent(NewTab.MouseButton1Down,function()
-		page.window.MainFrame["PageContentsContainer"]["PageContentLayout"]:JumpTo(page.window.MainFrame["PageContentsContainer"][page.Title])
-	end)
-
-	return setmetatable(page, Library.Tabs)
-end
-function Tabs:SubPage(properties)
-	local properties = properties or {}
-	local subpage = {
-		Selected = false,
-		Title = properties.Title or properties.title or "SubTab",
-		window = self.window,
-		Filled = properties.Filled or properties.filled or false,
-	}
-	local NewSubtabButton = self.window.Library.RenderModules:SubtabButton()
-	NewSubtabButton.Parent = self.subtabframe
-	NewSubtabButton.Text = subpage.Title
-	NewSubtabButton.Name = subpage.Title
-
-	local NewPageModule = self.window.Library.RenderModules:PagemoduleContainer()
-	NewPageModule.Parent = self.Page
-	NewPageModule.Name = subpage.Title
-	if subpage.Filled then 
-		subpage.Sides = {Left= NewPageModule["Left"]}
-	else 
-		subpage.Sides = {Left= NewPageModule["Left"], Right = NewPageModule["Right"]}
-	end 
-	-- if you're planning to use UIPageLayout for switching pages, make sure to listen on "CurrentPage" instead of "Previous" and "Next" because they do not work for whats intended here
-	Utility:storeEvent(self.Page["PageContentLayout"]:GetPropertyChangedSignal("CurrentPage"),function()
-		task.spawn(function()
-			if self.Page["PageContentLayout"].CurrentPage.Name == subpage.Title then 
-				ts:Create(NewSubtabButton,Utility.TweenInfo, {TextColor3 = Utility.Theme.Text,BackgroundTransparency = 0.65}):Play()
-				ts:Create(NewSubtabButton,Utility.TweenInfo, {BackgroundTransparency = 0.65}):Play()
-				Utility:UpdateObject(NewSubtabButton, "TextColor3","Text")
-			else 
-				ts:Create(NewSubtabButton,Utility.TweenInfo, {TextColor3 = Utility.Theme.Muted,BackgroundTransparency = 1}):Play()
-				Utility:UpdateObject(NewSubtabButton, "TextColor3","Muted")
-			end
-		end)
-	end)
-
-	Utility:storeEvent(NewSubtabButton.MouseButton1Down,function()
-		self.Page["PageContentLayout"]:JumpTo(self.Page[subpage.Title])
-	end)
-	
-	return setmetatable(subpage, Library.Tabs) 
-end
-function Tabs:Section(properties)
+	function Tabs:Section(properties)
 	local properties = properties or {}
 	local Section = {
 		Side = self.Filled and "Left" or properties.Side or properties.side or "Left",
