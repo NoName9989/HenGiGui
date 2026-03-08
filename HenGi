@@ -957,19 +957,22 @@ function Library:Window(properties)
 		end
 	end)
 
+		-- ==================== BẢNG XÁC NHẬN ĐEN ĐẬM ĐẶC (KHÔNG MỜ, KHÔNG BỊ ĐÈ) ====================
+	local ScreenGui = NewWindow.Parent  -- parent trực tiếp ScreenGui để luôn trên cùng
+
 	local ConfirmFrame = Utility:Render("Frame", {
 		Name = "ConfirmDialog",
 		Size = UDim2.new(0, 340, 0, 160),
 		Position = UDim2.new(0.5, -170, 0.5, -80),
-		BackgroundColor3 = Color3.fromRGB(3, 3, 8),   -- ĐEN ĐẬM NHẤT
+		BackgroundColor3 = Color3.fromRGB(2, 2, 7),   -- ĐEN ĐẬM NHẤT
 		BackgroundTransparency = 0,                   -- SOLID 100%
 		Visible = false,
-		ZIndex = 10000,                               -- Luôn trên cùng
-		Parent = NewWindow.Parent                     -- Parent trực tiếp ScreenGui
+		ZIndex = 99999,
+		Parent = ScreenGui
 	})
 
 	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 16), Parent = ConfirmFrame})
-	Utility:Render("UIStroke", {Color = Color3.fromRGB(55, 55, 75), Thickness = 2, Parent = ConfirmFrame})
+	Utility:Render("UIStroke", {Color = Color3.fromRGB(70, 70, 90), Thickness = 2, Parent = ConfirmFrame})
 
 	local ConfirmTitle = Utility:Render("TextLabel", {
 		Text = "Xác nhận đóng GUI",
@@ -1007,7 +1010,7 @@ function Library:Window(properties)
 		Text = "Không",
 		Size = UDim2.new(0, 120, 0, 38),
 		Position = UDim2.new(1, -145, 1, -50),
-		BackgroundColor3 = Color3.fromRGB(22, 22, 28),
+		BackgroundColor3 = Color3.fromRGB(20, 20, 25),
 		TextColor3 = Color3.fromRGB(230, 230, 240),
 		TextSize = 14,
 		Parent = ConfirmFrame
