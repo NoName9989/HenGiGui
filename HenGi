@@ -918,100 +918,67 @@ function Library:Window(properties)
 		setmetatable(Library,nil)
 	end
 
-		window.MainFrame = NewWindow["Window"]
-
-	-- ==================== TITLE BUTTONS + CONFIRMATION DIALOG ĐEN ĐẬM ====================
-	local SideBar = NewWindow["Window"]["SideBar"]
-	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
-	local OriginalTitle = SideBar["InterfaceTitle"]
-
-	local TitleButtons = Utility:Render("Frame", {
-		Name = "TitleButtons",
-		Size = UDim2.new(0, 70, 0, 28),
-		Position = UDim2.new(1, -80, 0, 8),
-		BackgroundTransparency = 1,
-		Parent = NewWindow["Window"]
-	})
-
-	local MinimizeBtn = Utility:Render("TextButton", {Name = "MinimizeBtn", Size = UDim2.new(0, 30, 0, 28), Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1, Text = "–", TextColor3 = "Text", TextSize = 24, FontFace = Library.Text.Font, AutoButtonColor = false, Parent = TitleButtons})
-	local CloseBtn = Utility:Render("TextButton", {Name = "CloseBtn", Size = UDim2.new(0, 30, 0, 28), Position = UDim2.new(1, -35, 0, 0), BackgroundTransparency = 1, Text = "×", TextColor3 = Color3.fromRGB(255, 80, 80), TextSize = 26, FontFace = Library.Text.Font, AutoButtonColor = false, Parent = TitleButtons})
-
-	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = MinimizeBtn})
-	Utility:Render("UIStroke", {Color = "BorderInner", Parent = MinimizeBtn})
-	Utility:Render("UIStroke", {Color = "BorderOuter", Parent = CloseBtn})
-	Utility:Render("UIStroke", {Color = "BorderInner", Parent = CloseBtn})
-
-	local minimized = false
-	local originalSize = NewWindow["Window"].Size
-
-	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
-		minimized = not minimized
-		if minimized then
-			SideBar.Visible = false; PageContainer.Visible = false; OriginalTitle.Visible = false
-			NewWindow["Window"].Size = UDim2.new(0, 629, 0, 45)
-			MinimizeBtn.Text = "+"
-		else
-			SideBar.Visible = true; PageContainer.Visible = true; OriginalTitle.Visible = true
-			NewWindow["Window"].Size = originalSize
-			MinimizeBtn.Text = "–"
-		end
-	end)
-
-	-- ==================== BẢNG XÁC NHẬN MÀU ĐEN ĐẬM ====================
+		-- ==================== BẢNG XÁC NHẬN ĐEN ĐẬM (KHÔNG BỊ ĐÈ) ====================
 	local ConfirmFrame = Utility:Render("Frame", {
 		Name = "ConfirmDialog",
 		Size = UDim2.new(0, 320, 0, 140),
 		Position = UDim2.new(0.5, -160, 0.5, -70),
-		BackgroundColor3 = Color3.fromRGB(8, 8, 12), -- ĐEN ĐẬM
-		BackgroundTransparency = 0.05,
+		BackgroundColor3 = Color3.fromRGB(5, 5, 10), -- ĐEN ĐẬM NHẤT
+		BackgroundTransparency = 0, -- SOLID, không mờ
 		Visible = false,
-		ZIndex = 999,
-		Parent = NewWindow["Window"]
+		ZIndex = 1000,
+		Parent = NewWindow -- parent trực tiếp ScreenGui để luôn trên cùng
 	})
 
 	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 14), Parent = ConfirmFrame})
-	Utility:Render("UIStroke", {Color = Color3.fromRGB(40, 40, 50), Thickness = 1.5, Parent = ConfirmFrame})
+	Utility:Render("UIStroke", {Color = Color3.fromRGB(60, 60, 80), Thickness = 2, Parent = ConfirmFrame})
 
-	local ConfirmTitle = Utility:Render("TextLabel", {Text = "Xác nhận đóng GUI", Size = UDim2.new(1, 0, 0, 40), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(220, 220, 230), TextSize = 16, FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold), Parent = ConfirmFrame})
+	local ConfirmTitle = Utility:Render("TextLabel", {
+		Text = "Xác nhận đóng GUI",
+		Size = UDim2.new(1, 0, 0, 40),
+		BackgroundTransparency = 1,
+		TextColor3 = Color3.fromRGB(240, 240, 255),
+		TextSize = 16,
+		FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold),
+		Parent = ConfirmFrame
+	})
 
-	local ConfirmText = Utility:Render("TextLabel", {Text = "Bạn có chắc muốn đóng GUI không?", Size = UDim2.new(1, -40, 0, 40), Position = UDim2.new(0, 20, 0, 45), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(180, 180, 190), TextSize = 14, TextWrapped = true, Parent = ConfirmFrame})
+	local ConfirmText = Utility:Render("TextLabel", {
+		Text = "Bạn có chắc muốn đóng GUI không?",
+		Size = UDim2.new(1, -40, 0, 40),
+		Position = UDim2.new(0, 20, 0, 45),
+		BackgroundTransparency = 1,
+		TextColor3 = Color3.fromRGB(200, 200, 220),
+		TextSize = 14,
+		TextWrapped = true,
+		Parent = ConfirmFrame
+	})
 
-	local YesBtn = Utility:Render("TextButton", {Text = "Có", Size = UDim2.new(0, 110, 0, 36), Position = UDim2.new(0, 25, 1, -48), BackgroundColor3 = Color3.fromRGB(200, 40, 40), TextColor3 = Color3.new(1,1,1), TextSize = 14, Parent = ConfirmFrame})
+	local YesBtn = Utility:Render("TextButton", {
+		Text = "Có",
+		Size = UDim2.new(0, 110, 0, 36),
+		Position = UDim2.new(0, 25, 1, -48),
+		BackgroundColor3 = Color3.fromRGB(200, 40, 40),
+		TextColor3 = Color3.new(1,1,1),
+		TextSize = 14,
+		Parent = ConfirmFrame
+	})
 	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 8), Parent = YesBtn})
 
-	local NoBtn = Utility:Render("TextButton", {Text = "Không", Size = UDim2.new(0, 110, 0, 36), Position = UDim2.new(1, -135, 1, -48), BackgroundColor3 = Color3.fromRGB(25, 25, 30), TextColor3 = Color3.fromRGB(220, 220, 230), TextSize = 14, Parent = ConfirmFrame})
+	local NoBtn = Utility:Render("TextButton", {
+		Text = "Không",
+		Size = UDim2.new(0, 110, 0, 36),
+		Position = UDim2.new(1, -135, 1, -48),
+		BackgroundColor3 = Color3.fromRGB(20, 20, 25),
+		TextColor3 = Color3.fromRGB(220, 220, 230),
+		TextSize = 14,
+		Parent = ConfirmFrame
+	})
 	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 8), Parent = NoBtn})
 
 	Utility:storeEvent(CloseBtn.MouseButton1Click, function() ConfirmFrame.Visible = true end)
 	Utility:storeEvent(YesBtn.MouseButton1Click, function() window:Abort() end)
 	Utility:storeEvent(NoBtn.MouseButton1Click, function() ConfirmFrame.Visible = false end)
-
-	-- ==================== KÉO THẢ (giữ nguyên) ====================
-	local dragging = false
-	local dragStart, startPos
-
-	local function update(input)
-		local delta = input.Position - dragStart
-		NewWindow["Window"].Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-	end
-
-	local function startDrag(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			dragStart = input.Position
-			startPos = NewWindow["Window"].Position
-			input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
-		end
-	end
-
-	Utility:storeEvent(OriginalTitle.InputBegan, startDrag)
-	Utility:storeEvent(TitleButtons.InputBegan, startDrag)
-	Utility:storeEvent(UserInputService.InputChanged, function(input)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then update(input) end
-	end)
-
-	return setmetatable(window,Library)
-end
 function Library:Page(properties)
 	local properties = properties or {}
 	local page = {
