@@ -888,6 +888,50 @@ Library.RenderModules = setmetatable({
 		}) 
 		return ButtonContainer
 	end,
+	SearchBarContainer = function()
+		local SearchContainer = Utility:Render("TextButton", {  
+			BackgroundTransparency = 1,
+			Text = "",
+			Name = "SearchBarContainer",
+			Size = UDim2.new(1, 0, 0, 36),
+			BorderSizePixel = 0,
+		}) 
+		local SearchBackground = Utility:Render("Frame", {  
+			Name = "SearchBackground",
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundColor3 = "LightContrastBackground",
+			Parent = SearchContainer 
+		}) 
+		Utility:Render("UIStroke", {Color = "BorderInner", Parent = SearchBackground})
+		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = SearchBackground})
+		Utility:Render("UICorner", {CornerRadius = UDim.new(0, 10), Parent = SearchBackground})
+
+		local SearchIcon = Utility:Render("TextLabel", {  
+			Text = "🔍",
+			TextColor3 = "Muted",
+			Size = UDim2.new(0, 30, 1, 0),
+			BackgroundTransparency = 1,
+			TextSize = 16,
+			Parent = SearchBackground 
+		})
+
+		local SearchBox = Utility:Render("TextBox", {  
+			Name = "SearchBox",
+			PlaceholderText = "Tìm kiếm...",
+			Text = "",
+			TextColor3 = "Text",
+			PlaceholderColor3 = "Muted",
+			Size = UDim2.new(1, -40, 1, 0),
+			Position = UDim2.new(0, 35, 0, 0),
+			BackgroundTransparency = 1,
+			TextSize = 13,
+			FontFace = Library.Text.Font,
+			ClearTextOnFocus = false,
+			Parent = SearchBackground 
+		})
+
+		return SearchContainer
+	end,
 },Library.RenderModules)
 local Tabs = Library.Tabs;
 local Sections = Library.sections;
@@ -1534,6 +1578,27 @@ function Sections:Button(properties)
 	end)
 	Utility:storeEvent(ButtonContainer.MouseLeave, function()
 		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+	end)
+end
+function Sections:SearchBar(properties)
+	properties = properties or {}
+	local Search = {
+		Placeholder = properties.Placeholder or "Tìm kiếm...",
+		Callback = properties.Callback or function() end,
+		Debounce = properties.Debounce or 0.3
+	}
+
+	local SearchContainer = Library.RenderModules:SearchBarContainer()
+	SearchContainer.Parent = self.Container
+	SearchContainer["SearchBackground"]["SearchBox"].PlaceholderText = Search.Placeholder
+
+	local lastTick = 0
+	Utility:storeEvent(SearchContainer["SearchBackground"]["SearchBox"].Changed, function(prop)
+		if prop ~= "Text" then return end
+		local now = tick()
+		if now - lastTick < Search.Debounce then return end
+		lastTick = now
+		Search.Callback(SearchContainer["SearchBackground"]["SearchBox"].Text)
 	end)
 end
 
