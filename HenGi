@@ -957,30 +957,62 @@ function Library:Window(properties)
 		end
 	end)
 
-	-- ==================== BẢNG XÁC NHẬN MÀU ĐEN ĐẬM ====================
 	local ConfirmFrame = Utility:Render("Frame", {
 		Name = "ConfirmDialog",
-		Size = UDim2.new(0, 320, 0, 140),
-		Position = UDim2.new(0.5, -160, 0.5, -70),
-		BackgroundColor3 = Color3.fromRGB(8, 8, 12), -- ĐEN ĐẬM
-		BackgroundTransparency = 0.05,
+		Size = UDim2.new(0, 340, 0, 160),
+		Position = UDim2.new(0.5, -170, 0.5, -80),
+		BackgroundColor3 = Color3.fromRGB(3, 3, 8),   -- ĐEN ĐẬM NHẤT
+		BackgroundTransparency = 0,                   -- SOLID 100%
 		Visible = false,
-		ZIndex = 999,
-		Parent = NewWindow["Window"]
+		ZIndex = 10000,                               -- Luôn trên cùng
+		Parent = NewWindow.Parent                     -- Parent trực tiếp ScreenGui
 	})
 
-	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 14), Parent = ConfirmFrame})
-	Utility:Render("UIStroke", {Color = Color3.fromRGB(40, 40, 50), Thickness = 1.5, Parent = ConfirmFrame})
+	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 16), Parent = ConfirmFrame})
+	Utility:Render("UIStroke", {Color = Color3.fromRGB(55, 55, 75), Thickness = 2, Parent = ConfirmFrame})
 
-	local ConfirmTitle = Utility:Render("TextLabel", {Text = "Xác nhận đóng GUI", Size = UDim2.new(1, 0, 0, 40), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(220, 220, 230), TextSize = 16, FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold), Parent = ConfirmFrame})
+	local ConfirmTitle = Utility:Render("TextLabel", {
+		Text = "Xác nhận đóng GUI",
+		Size = UDim2.new(1, 0, 0, 45),
+		BackgroundTransparency = 1,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		TextSize = 17,
+		FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold),
+		Parent = ConfirmFrame
+	})
 
-	local ConfirmText = Utility:Render("TextLabel", {Text = "Bạn có chắc muốn đóng GUI không?", Size = UDim2.new(1, -40, 0, 40), Position = UDim2.new(0, 20, 0, 45), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(180, 180, 190), TextSize = 14, TextWrapped = true, Parent = ConfirmFrame})
+	local ConfirmText = Utility:Render("TextLabel", {
+		Text = "Bạn có chắc muốn đóng GUI không?",
+		Size = UDim2.new(1, -40, 0, 45),
+		Position = UDim2.new(0, 20, 0, 48),
+		BackgroundTransparency = 1,
+		TextColor3 = Color3.fromRGB(210, 210, 225),
+		TextSize = 14,
+		TextWrapped = true,
+		Parent = ConfirmFrame
+	})
 
-	local YesBtn = Utility:Render("TextButton", {Text = "Có", Size = UDim2.new(0, 110, 0, 36), Position = UDim2.new(0, 25, 1, -48), BackgroundColor3 = Color3.fromRGB(200, 40, 40), TextColor3 = Color3.new(1,1,1), TextSize = 14, Parent = ConfirmFrame})
-	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 8), Parent = YesBtn})
+	local YesBtn = Utility:Render("TextButton", {
+		Text = "Có",
+		Size = UDim2.new(0, 120, 0, 38),
+		Position = UDim2.new(0, 25, 1, -50),
+		BackgroundColor3 = Color3.fromRGB(190, 35, 35),
+		TextColor3 = Color3.new(1,1,1),
+		TextSize = 14,
+		Parent = ConfirmFrame
+	})
+	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 9), Parent = YesBtn})
 
-	local NoBtn = Utility:Render("TextButton", {Text = "Không", Size = UDim2.new(0, 110, 0, 36), Position = UDim2.new(1, -135, 1, -48), BackgroundColor3 = Color3.fromRGB(25, 25, 30), TextColor3 = Color3.fromRGB(220, 220, 230), TextSize = 14, Parent = ConfirmFrame})
-	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 8), Parent = NoBtn})
+	local NoBtn = Utility:Render("TextButton", {
+		Text = "Không",
+		Size = UDim2.new(0, 120, 0, 38),
+		Position = UDim2.new(1, -145, 1, -50),
+		BackgroundColor3 = Color3.fromRGB(22, 22, 28),
+		TextColor3 = Color3.fromRGB(230, 230, 240),
+		TextSize = 14,
+		Parent = ConfirmFrame
+	})
+	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 9), Parent = NoBtn})
 
 	Utility:storeEvent(CloseBtn.MouseButton1Click, function() ConfirmFrame.Visible = true end)
 	Utility:storeEvent(YesBtn.MouseButton1Click, function() window:Abort() end)
