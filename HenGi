@@ -711,7 +711,8 @@ Library.RenderModules = setmetatable({
 		return SliderContainer
 	end,
 
-			DropdownContainer = function()
+	DropdownContainer = function()
+
 		local DropdownContainer = Utility:Render("TextButton", {  
 			BackgroundTransparency = 1,
 			Text = "",
@@ -720,7 +721,6 @@ Library.RenderModules = setmetatable({
 			Size = UDim2.new(1, 0, 0, 40),
 			BorderSizePixel = 0,
 		}) 
-
 		local DropdownBox = Utility:Render("Frame", {  
 			AnchorPoint = Vector2.new(0, 1),
 			Name = "DropdownBox",
@@ -730,47 +730,32 @@ Library.RenderModules = setmetatable({
 			BackgroundColor3 = "DarkContrastBackground",
 			Parent = DropdownContainer 
 		}) 
-
-		Utility:Render("UIStroke", {Color = "BorderInner", BorderStrokePosition = Enum.BorderStrokePosition.Inner, Parent = DropdownBox})
-		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = DropdownBox})
-
-		-- Giá trị hiện tại
+		local InnerStroke = Utility:Render("UIStroke", {  
+			Color = "BorderInner",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = DropdownBox 
+		}) 
+		local OuterStroke = Utility:Render("UIStroke", {  
+			Parent = DropdownBox,
+			Color = "BorderOuter"
+		}) 
 		local DropdownValueText = Utility:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+			TextColor3 = "Muted",
+			TextStrokeTransparency = 0,
 			Name = "DropdownValueText",
 			Size = UDim2.new(0, 200, 1, 0),
 			BackgroundTransparency = 1,
-			TextColor3 = "Muted",
+			TextTruncate = Enum.TextTruncate.AtEnd,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Position = UDim2.new(0, 8, 0, 0),
+			BorderSizePixel = 0,
 			TextSize = 12,
 			Parent = DropdownBox 
 		}) 
-
-		local DropdownArrow = Utility:Render("ImageLabel", {  
-			ImageColor3 = "Muted",
-			Name = "DropdownArrow",
-			AnchorPoint = Vector2.new(1, 0.5),
-			Image = "rbxassetid://113229176886493",
-			BackgroundTransparency = 1,
-			Position = UDim2.new(1, -8, 0.5, 0),
-			Size = UDim2.new(0, 16, 0, 16),
-			Parent = DropdownBox 
-		}) 
-
-		local DropdownTitle = Utility:Render("TextLabel", {  
-			Name = "DropdownTitle",
-			Size = UDim2.new(0, 200, 0, 14),
-			BackgroundTransparency = 1,
-			TextColor3 = "Muted",
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextYAlignment = Enum.TextYAlignment.Top,
-			TextSize = 12,
-			Parent = DropdownContainer 
-		}) 
-
-		-- Anticlick (chỉ hiện khi mở)
 		local Anticlick = Utility:Render("TextButton", {  
 			Visible = false,
+			FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
 			Text = "",
 			Name = "Anticlick",
 			BorderSizePixel = 0,
@@ -779,41 +764,65 @@ Library.RenderModules = setmetatable({
 			Position = UDim2.new(0, 0, 1, 0),
 			Size = UDim2.new(1, 0, 0, 0),
 			ZIndex = 2,
+			TextSize = 14,
 			Parent = DropdownBox 
 		}) 
-
-		-- Ô tìm kiếm BÉ (chỉ hiện khi mở dropdown)
-		local SearchBox = Utility:Render("TextBox", {
-			Name = "SearchBox",
-			PlaceholderText = "Tìm kiếm...",
-			Text = "",
-			TextColor3 = "Text",
-			PlaceholderColor3 = "Muted",
-			Size = UDim2.new(1, -16, 0, 26),           -- bé hơn
-			Position = UDim2.new(0, 8, 0, 8),
-			BackgroundColor3 = "LightContrastBackground",
-			TextSize = 12,
-			ClearTextOnFocus = false,
-			Parent = Anticlick
-		})
-		Utility:Render("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SearchBox})
-		Utility:Render("UIStroke", {Color = "BorderInner", Parent = SearchBox})
-
 		local ListContainer = Utility:Render("Frame", {  
 			Name = "ListContainer",
+			Active = true,
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BorderSizePixel = 0,
-			Size = UDim2.new(1, 0, 0, 0),
+			Size = UDim2.new(1, 0, 1, 0),
 			ZIndex = 2,
 			BackgroundColor3 = "DarkContrastBackground",
 			Parent = Anticlick 
 		}) 
-		Utility:Render("UIStroke", {Color = "BorderInner", Parent = ListContainer})
-		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = ListContainer})
-		Utility:Render("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Parent = ListContainer})
-		Utility:Render("UIPadding", {PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0,6), Parent = ListContainer})
-
+		local UIStroke = Utility:Render("UIStroke", {  
+			Color = "BorderInner",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = ListContainer 
+		}) 
+		local UIStroke = Utility:Render("UIStroke", {  
+			Color = "BorderOuter",
+			BorderStrokePosition = Enum.BorderStrokePosition.Outer,
+			Parent = ListContainer 
+		}) 
+		local UIListLayout = Utility:Render("UIListLayout", {  
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = ListContainer 
+		}) 
+		local UIPadding = Utility:Render("UIPadding", {  
+			PaddingTop = UDim.new(0, 6),
+			PaddingBottom = UDimnew(0,6),
+			Parent = ListContainer 
+		}) 
+		local DropdownArrow = Utility:Render("ImageLabel", {  
+			ImageColor3 = "Muted",
+			BorderColor3 = "BorderOuter",
+			Name = "DropdownArrow",
+			AnchorPoint = Vector2.new(1, 0.5),
+			Image = "rbxassetid://113229176886493",
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, -8, 0.5, 0),
+			Size = UDim2.new(0, 16, 0, 16),
+			BorderSizePixel = 0,
+			Parent = DropdownBox 
+		}) 
+		local DropdownTitle = Utility:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+			TextColor3 = "Muted",
+			TextStrokeTransparency = 0,
+			Name = "DropdownTitle",
+			Size = UDim2.new(0, 200, 0, 14),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			BorderSizePixel = 0,
+			TextYAlignment = Enum.TextYAlignment.Top,
+			TextSize = 12,
+			Parent = DropdownContainer 
+		}) 
 		return DropdownContainer
+
 	end,
 	OptionButton = function()
 		local OptionFrame = Utility:Render("TextButton", {  
@@ -1337,25 +1346,13 @@ function Sections:Combo(properties)
 	local combo = {
 		Title = properties.Title or "Multi Select",
 		List = properties.List or {"Option 1", "Option 2"},
-		Value = properties.Value or {},
+		Value = properties.Value or {},           -- Bảng chứa nhiều mục đã chọn
 		Callback = properties.Callback or function() end,
 		Opened = false,
-		OriginalList = {}
 	}
 	local DropdownContainer = Library.RenderModules:DropdownContainer()
 	DropdownContainer.Parent = self.Container
 	DropdownContainer["DropdownTitle"].Text = combo.Title
-
-	combo.OriginalList = table.clone(combo.List)
-
-	function combo:FilterList(text)
-		local lower = string.lower(text or "")
-		for _, Option in pairs(DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]:GetChildren()) do
-			if Option:IsA("TextButton") then
-				Option.Visible = lower == "" or string.find(string.lower(Option.Name), lower)
-			end
-		end
-	end
 
 	function combo:UpdateDisplay()
 		DropdownContainer["DropdownBox"]["DropdownValueText"].Text = #combo.Value > 0 and table.concat(combo.Value, ", ") or "None"
@@ -1363,20 +1360,38 @@ function Sections:Combo(properties)
 
 	function combo:SetValue(value)
 		if typeof(value) ~= "table" then value = {value} end
+		
 		for _, v in ipairs(value) do
 			local idx = table.find(combo.Value, v)
-			if idx then table.remove(combo.Value, idx) else table.insert(combo.Value, v) end
+			if idx then
+				table.remove(combo.Value, idx)
+			else
+				table.insert(combo.Value, v)
+			end
 		end
+
 		combo:UpdateDisplay()
+
+		-- Cập nhật màu các option
+		for _, Option in pairs(DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]:GetChildren()) do
+			if Option:IsA("TextButton") then
+				local selected = table.find(combo.Value, Option.Name)
+				Option.BackgroundTransparency = selected and 0.6 or 1
+				Option["OptionText"].TextColor3 = selected and Utility.Theme.Text or Utility.Theme.Muted
+				Option["Indicator"].BackgroundTransparency = selected and 0 or 1
+			end
+		end
+
 		combo.Callback(combo.Value)
 	end
 
 	function combo:AddOption(NewOption)
-		if not table.find(combo.OriginalList, NewOption) then table.insert(combo.OriginalList, NewOption) end
+		if not table.find(combo.List, NewOption) then table.insert(combo.List, NewOption) end
 		local NewOptionButton = Library.RenderModules:OptionButton()
 		NewOptionButton.Parent = DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]
 		NewOptionButton["OptionText"].Text = tostring(NewOption)
 		NewOptionButton.Name = tostring(NewOption)
+
 		Utility:storeEvent(NewOptionButton.MouseButton1Click, function()
 			combo:SetValue(NewOptionButton.Name)
 		end)
@@ -1385,82 +1400,92 @@ function Sections:Combo(properties)
 	function combo:ToggleListContainer(bool)
 		DropdownContainer["DropdownBox"]["Anticlick"].Visible = bool
 		combo.Opened = bool
-		if bool then combo:FilterList("") end
 	end
 
 	Utility:storeEvent(DropdownContainer.MouseButton1Down, function()
 		combo:ToggleListContainer(not combo.Opened)
 	end)
 
-	Utility:storeEvent(DropdownContainer["DropdownBox"]["SearchBox"].Changed, function(prop)
-		if prop == "Text" then combo:FilterList(DropdownContainer["DropdownBox"]["SearchBox"].Text) end
-	end)
+	for _, option in pairs(combo.List) do
+		combo:AddOption(option)
+	end
 
-	for _, option in pairs(combo.List) do combo:AddOption(option) end
 	combo:UpdateDisplay()
+	combo:SetValue(combo.Value)
+
 	return combo
 end
 
 function Sections:Dropdown(properties)
 	properties = properties or {}
 	local dropdown = {
-		Title = properties.Title or "Dropdown",
-		List = properties.List or {"Option 1", "Option 2"},
-		Value = properties.Value or "",
-		Callback = properties.Callback or function() end,
+		Title = properties.Title or properties.title or "Dropdown",
+		List = properties.List or properties.list or {"Option 1", "Option 2"},
+		Value = properties.Value or properties.value or "",
+		Callback = properties.Callback or properties.callback or function() end,
 		Opened = false,
-		OriginalList = {}
 	}
 	local DropdownContainer = Library.RenderModules:DropdownContainer()
 	DropdownContainer.Parent = self.Container
 	DropdownContainer["DropdownTitle"].Text = dropdown.Title
 
-	dropdown.OriginalList = table.clone(dropdown.List)
 
-	function dropdown:FilterList(text)
-		local lower = string.lower(text or "")
-		for _, Option in pairs(DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]:GetChildren()) do
-			if Option:IsA("TextButton") then
-				Option.Visible = lower == "" or string.find(string.lower(Option.Name), lower)
-			end
-		end
-	end
-
-	function dropdown:SetValue(value)
+	function dropdown:SetValue(value: string)
 		DropdownContainer["DropdownBox"]["DropdownValueText"].Text = value
 		dropdown.Callback(value)
-		dropdown:ToggleListContainer(false)
-	end
 
-	function dropdown:AddOption(NewOption)
-		if not table.find(dropdown.OriginalList, NewOption) then table.insert(dropdown.OriginalList, NewOption) end
+		for _,Option in pairs(DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]:GetChildren()) do 
+			if Option.Name == tostring(value) and Option:IsA("TextButton") then 
+				task.spawn(function()
+					dropdown.Value = value
+					ts:Create(Option, Utility.TweenInfo, {BackgroundTransparency = 0.6}):Play()
+					ts:Create(Option["OptionText"], Utility.TweenInfo, {TextColor3 = Utility.Theme.Text, Position = UDim2new(0,13,0,0)}):Play()
+					ts:Create(Option["Indicator"], Utility.TweenInfo, {BackgroundTransparency = 0}):Play()
+					Utility:UpdateObject(Option["OptionText"],"TextColor3",Utility.Theme.Text)
+				end)
+			elseif Option.Name ~= tostring(value) and Option:IsA("TextButton") then
+				task.spawn(function()
+					ts:Create(Option, Utility.TweenInfo, {BackgroundTransparency = 1}):Play()
+					ts:Create(Option["OptionText"], Utility.TweenInfo, {TextColor3 = Utility.Theme.Muted, Position = UDim2new(0,10,0,0)}):Play()
+					ts:Create(Option["Indicator"], Utility.TweenInfo, {BackgroundTransparency = 1}):Play()
+					Utility:UpdateObject(Option["OptionText"],"TextColor3",Utility.Theme.Muted)
+				end)
+
+			end
+		end
+
+
+	end
+	function dropdown:AddOption(NewOption: string)
+		if typeof(NewOption) == "table" then 
+			NewOption = table.unpack(NewOption) 
+		end 
+		if not table.find(self.List,NewOption) then 
+			table.insert(self.List, NewOption)
+		end
 		local NewOptionButton = Library.RenderModules:OptionButton()
 		NewOptionButton.Parent = DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]
 		NewOptionButton["OptionText"].Text = tostring(NewOption)
 		NewOptionButton.Name = tostring(NewOption)
-		Utility:storeEvent(NewOptionButton.MouseButton1Click, function()
+		Utility:storeEvent(NewOptionButton.MouseButton1Click,function()
 			dropdown:SetValue(NewOptionButton.Name)
+
 		end)
 	end
 
-	function dropdown:ToggleListContainer(bool)
-		DropdownContainer["DropdownBox"]["Anticlick"].Visible = bool
-		dropdown.Opened = bool
-		if bool then dropdown:FilterList("") end
-	end
+	function dropdown:ToggleListContainer(bool: boolean)
+		task.spawn(function()
+			ts:Create(DropdownContainer["DropdownTitle"], Utility.TweenInfo, {TextColor3 = bool and Utility.Theme.Text or Utility.Theme.Muted }):Play()
+			Utility:UpdateObject(DropdownContainer["DropdownTitle"],"TextColor3",bool and Utility.Theme.Text or Utility.Theme.Muted)
+			DropdownContainer["DropdownBox"]["Anticlick"].Visible = bool
+			dropdown.Opened = bool
 
-	Utility:storeEvent(DropdownContainer.MouseButton1Down, function()
+		end)
+	end
+	Utility:storeEvent(DropdownContainer.MouseButton1Down,function()
 		dropdown:ToggleListContainer(not dropdown.Opened)
 	end)
-
-	-- Search event
-	Utility:storeEvent(DropdownContainer["DropdownBox"]["SearchBox"].Changed, function(prop)
-		if prop == "Text" then
-			dropdown:FilterList(DropdownContainer["DropdownBox"]["SearchBox"].Text)
-		end
-	end)
-
-	for _, option in pairs(dropdown.List) do
+	for i,option in pairs(dropdown.List) do
 		dropdown:AddOption(option)
 	end
 	dropdown:SetValue(dropdown.Value)
