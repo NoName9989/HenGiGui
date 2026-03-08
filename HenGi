@@ -920,7 +920,7 @@ function Library:Window(properties)
 
 	window.MainFrame = NewWindow["Window"]
 
-	-- ==================== THANH THU NHỎ KIỂU CŨ (không chữ) ====================
+	-- ==================== TITLE BUTTONS + CONFIRMATION DIALOG ====================
 	local SideBar = NewWindow["Window"]["SideBar"]
 	local PageContainer = NewWindow["Window"]["PageContentsContainer"]
 	local OriginalTitle = SideBar["InterfaceTitle"]
@@ -967,6 +967,7 @@ function Library:Window(properties)
 	local minimized = false
 	local originalSize = NewWindow["Window"].Size
 
+	-- ==================== MINIMIZE (giữ nguyên) ====================
 	Utility:storeEvent(MinimizeBtn.MouseButton1Click, function()
 		minimized = not minimized
 		if minimized then
@@ -984,21 +985,79 @@ function Library:Window(properties)
 		end
 	end)
 
+	-- ==================== CONFIRMATION DIALOG KHI NHẤN X ====================
+	local ConfirmFrame = Utility:Render("Frame", {
+		Name = "ConfirmDialog",
+		Size = UDim2.new(0, 320, 0, 140),
+		Position = UDim2.new(0.5, -160, 0.5, -70),
+		BackgroundColor3 = "DarkContrastBackground",
+		BackgroundTransparency = 0.1,
+		Visible = false,
+		ZIndex = 999,
+		Parent = NewWindow["Window"]
+	})
+
+	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 14), Parent = ConfirmFrame})
+	Utility:Render("UIStroke", {Color = "BorderInner", Thickness = 1.5, Parent = ConfirmFrame})
+
+	local ConfirmTitle = Utility:Render("TextLabel", {
+		Text = "Xác nhận đóng GUI",
+		Size = UDim2.new(1, 0, 0, 40),
+		BackgroundTransparency = 1,
+		TextColor3 = "Text",
+		TextSize = 16,
+		FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Bold),
+		Parent = ConfirmFrame
+	})
+
+	local ConfirmText = Utility:Render("TextLabel", {
+		Text = "Bạn có chắc muốn đóng GUI không?",
+		Size = UDim2.new(1, -40, 0, 40),
+		Position = UDim2.new(0, 20, 0, 45),
+		BackgroundTransparency = 1,
+		TextColor3 = "Muted",
+		TextSize = 14,
+		TextWrapped = true,
+		Parent = ConfirmFrame
+	})
+
+	local YesBtn = Utility:Render("TextButton", {
+		Text = "Có",
+		Size = UDim2.new(0, 110, 0, 36),
+		Position = UDim2.new(0, 25, 1, -48),
+		BackgroundColor3 = Color3.fromRGB(220, 50, 50),
+		TextColor3 = Color3.new(1,1,1),
+		TextSize = 14,
+		Parent = ConfirmFrame
+	})
+	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 8), Parent = YesBtn})
+
+	local NoBtn = Utility:Render("TextButton", {
+		Text = "Không",
+		Size = UDim2.new(0, 110, 0, 36),
+		Position = UDim2.new(1, -135, 1, -48),
+		BackgroundColor3 = "LightContrastBackground",
+		TextColor3 = "Text",
+		TextSize = 14,
+		Parent = ConfirmFrame
+	})
+	Utility:Render("UICorner", {CornerRadius = UDim.new(0, 8), Parent = NoBtn})
+
 	Utility:storeEvent(CloseBtn.MouseButton1Click, function()
+		ConfirmFrame.Visible = true
+	end)
+
+	Utility:storeEvent(YesBtn.MouseButton1Click, function()
 		window:Abort()
 	end)
 
-	local function AddHover(btn, normalColor)
-		btn.MouseEnter:Connect(function() ts:Create(btn, Utility.TweenInfo, {TextColor3 = Utility.Theme.Accent}):Play() end)
-		btn.MouseLeave:Connect(function() ts:Create(btn, Utility.TweenInfo, {TextColor3 = normalColor}):Play() end)
-	end
-	AddHover(MinimizeBtn, Utility.Theme.Text)
-	AddHover(CloseBtn, Color3.fromRGB(255, 80, 80))
+	Utility:storeEvent(NoBtn.MouseButton1Click, function()
+		ConfirmFrame.Visible = false
+	end)
 
-	-- ==================== KÉO THẢ ====================
+	-- ==================== KÉO THẢ (giữ nguyên) ====================
 	local dragging = false
-	local dragStart
-	local startPos
+	local dragStart, startPos
 
 	local function update(input)
 		local delta = input.Position - dragStart
