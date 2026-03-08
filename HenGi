@@ -711,7 +711,7 @@ Library.RenderModules = setmetatable({
 		return SliderContainer
 	end,
 
-		DropdownContainer = function()
+			DropdownContainer = function()
 		local DropdownContainer = Utility:Render("TextButton", {  
 			BackgroundTransparency = 1,
 			Text = "",
@@ -720,6 +720,7 @@ Library.RenderModules = setmetatable({
 			Size = UDim2.new(1, 0, 0, 40),
 			BorderSizePixel = 0,
 		}) 
+
 		local DropdownBox = Utility:Render("Frame", {  
 			AnchorPoint = Vector2.new(0, 1),
 			Name = "DropdownBox",
@@ -729,27 +730,45 @@ Library.RenderModules = setmetatable({
 			BackgroundColor3 = "DarkContrastBackground",
 			Parent = DropdownContainer 
 		}) 
+
 		Utility:Render("UIStroke", {Color = "BorderInner", BorderStrokePosition = Enum.BorderStrokePosition.Inner, Parent = DropdownBox})
 		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = DropdownBox})
 
-		-- Ô tìm kiếm (Search Bar)
-		local SearchBox = Utility:Render("TextBox", {
-			Name = "SearchBox",
-			PlaceholderText = "Tìm kiếm...",
-			Text = "",
-			TextColor3 = "Text",
-			PlaceholderColor3 = "Muted",
-			Size = UDim2.new(1, -16, 0, 28),
-			Position = UDim2.new(0, 8, 0, 8),
-			BackgroundColor3 = "LightContrastBackground",
-			BackgroundTransparency = 0,
-			TextSize = 13,
-			ClearTextOnFocus = false,
-			Parent = DropdownBox
-		})
-		Utility:Render("UICorner", {CornerRadius = UDim.new(0, 8), Parent = SearchBox})
-		Utility:Render("UIStroke", {Color = "BorderInner", Parent = SearchBox})
+		-- Giá trị hiện tại
+		local DropdownValueText = Utility:Render("TextLabel", {  
+			Name = "DropdownValueText",
+			Size = UDim2.new(0, 200, 1, 0),
+			BackgroundTransparency = 1,
+			TextColor3 = "Muted",
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Position = UDim2.new(0, 8, 0, 0),
+			TextSize = 12,
+			Parent = DropdownBox 
+		}) 
 
+		local DropdownArrow = Utility:Render("ImageLabel", {  
+			ImageColor3 = "Muted",
+			Name = "DropdownArrow",
+			AnchorPoint = Vector2.new(1, 0.5),
+			Image = "rbxassetid://113229176886493",
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, -8, 0.5, 0),
+			Size = UDim2.new(0, 16, 0, 16),
+			Parent = DropdownBox 
+		}) 
+
+		local DropdownTitle = Utility:Render("TextLabel", {  
+			Name = "DropdownTitle",
+			Size = UDim2.new(0, 200, 0, 14),
+			BackgroundTransparency = 1,
+			TextColor3 = "Muted",
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextYAlignment = Enum.TextYAlignment.Top,
+			TextSize = 12,
+			Parent = DropdownContainer 
+		}) 
+
+		-- Anticlick (chỉ hiện khi mở)
 		local Anticlick = Utility:Render("TextButton", {  
 			Visible = false,
 			Text = "",
@@ -762,6 +781,24 @@ Library.RenderModules = setmetatable({
 			ZIndex = 2,
 			Parent = DropdownBox 
 		}) 
+
+		-- Ô tìm kiếm BÉ (chỉ hiện khi mở dropdown)
+		local SearchBox = Utility:Render("TextBox", {
+			Name = "SearchBox",
+			PlaceholderText = "Tìm kiếm...",
+			Text = "",
+			TextColor3 = "Text",
+			PlaceholderColor3 = "Muted",
+			Size = UDim2.new(1, -16, 0, 26),           -- bé hơn
+			Position = UDim2.new(0, 8, 0, 8),
+			BackgroundColor3 = "LightContrastBackground",
+			TextSize = 12,
+			ClearTextOnFocus = false,
+			Parent = Anticlick
+		})
+		Utility:Render("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SearchBox})
+		Utility:Render("UIStroke", {Color = "BorderInner", Parent = SearchBox})
+
 		local ListContainer = Utility:Render("Frame", {  
 			Name = "ListContainer",
 			AutomaticSize = Enum.AutomaticSize.Y,
@@ -775,46 +812,6 @@ Library.RenderModules = setmetatable({
 		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = ListContainer})
 		Utility:Render("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Parent = ListContainer})
 		Utility:Render("UIPadding", {PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0,6), Parent = ListContainer})
-
-		-- Giữ lại DropdownValueText và DropdownTitle như cũ
-		local DropdownValueText = Utility:Render("TextLabel", {  
-			FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
-			TextColor3 = "Muted",
-			TextStrokeTransparency = 0,
-			Name = "DropdownValueText",
-			Size = UDim2.new(0, 200, 1, 0),
-			BackgroundTransparency = 1,
-			TextTruncate = Enum.TextTruncate.AtEnd,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			Position = UDim2.new(0, 8, 0, 0),
-			BorderSizePixel = 0,
-			TextSize = 12,
-			Parent = DropdownBox 
-		}) 
-		local DropdownTitle = Utility:Render("TextLabel", {  
-			FontFace = Font.new("rbxassetid://12187372847", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
-			TextColor3 = "Muted",
-			TextStrokeTransparency = 0,
-			Name = "DropdownTitle",
-			Size = UDim2.new(0, 200, 0, 14),
-			BackgroundTransparency = 1,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			BorderSizePixel = 0,
-			TextYAlignment = Enum.TextYAlignment.Top,
-			TextSize = 12,
-			Parent = DropdownContainer 
-		}) 
-		local DropdownArrow = Utility:Render("ImageLabel", {  
-			ImageColor3 = "Muted",
-			Name = "DropdownArrow",
-			AnchorPoint = Vector2.new(1, 0.5),
-			Image = "rbxassetid://113229176886493",
-			BackgroundTransparency = 1,
-			Position = UDim2.new(1, -8, 0.5, 0),
-			Size = UDim2.new(0, 16, 0, 16),
-			BorderSizePixel = 0,
-			Parent = DropdownBox 
-		}) 
 
 		return DropdownContainer
 	end,
