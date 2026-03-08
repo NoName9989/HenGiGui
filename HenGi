@@ -1018,7 +1018,7 @@ Utility:Render("UICorner",{CornerRadius=UDim.new(0,14),Parent=ConfirmFrame})
 Utility:Render("UIStroke",{Color="BorderInner",Thickness=1.5,Parent=ConfirmFrame})
 
 local ConfirmTitle = Utility:Render("TextLabel",{
-	Text="Xác nhận đóng GUI",
+	Text="Confirm Close GUI",
 	Size=UDim2.new(1,0,0,40),
 	BackgroundTransparency=1,
 	TextColor3="Text",
@@ -1029,7 +1029,7 @@ local ConfirmTitle = Utility:Render("TextLabel",{
 })
 
 local ConfirmText = Utility:Render("TextLabel",{
-	Text="Bạn có chắc muốn đóng GUI không?",
+	Text="Are you sure you want to close the GUI?",
 	Size=UDim2.new(1,-40,0,40),
 	Position=UDim2.new(0,20,0,45),
 	BackgroundTransparency=1,
@@ -1041,7 +1041,7 @@ local ConfirmText = Utility:Render("TextLabel",{
 })
 
 local YesBtn = Utility:Render("TextButton",{
-	Text="Có",
+	Text="YES",
 	Size=UDim2.new(0,110,0,36),
 	Position=UDim2.new(0,25,1,-48),
 	BackgroundColor3=Color3.fromRGB(220,50,50),
@@ -1055,7 +1055,7 @@ local YesBtn = Utility:Render("TextButton",{
 Utility:Render("UICorner",{CornerRadius=UDim.new(0,8),Parent=YesBtn})
 
 local NoBtn = Utility:Render("TextButton",{
-	Text="Không",
+	Text="No",
 	Size=UDim2.new(0,110,0,36),
 	Position=UDim2.new(1,-135,1,-48),
 	BackgroundColor3="LightContrastBackground",
