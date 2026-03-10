@@ -914,7 +914,7 @@ Library.RenderModules = setmetatable({
 	return ButtonContainer
 
 end,
-			TextBoxContainer = function(Name, Placeholder, Callback)
+	TextBoxContainer = function(Name, Placeholder, Callback)
 
 	local TextBoxContainer = Utility:Render("TextButton",{
 		BackgroundTransparency = 1,
@@ -940,7 +940,7 @@ end,
 		Name = "TitleLabel",
 		Text = Name or "Input",
 		TextColor3 = "Muted",
-		Size = UDim2.new(0,120,1,0),
+		Size = UDim2.new(0,90,1,0), -- nhỏ lại
 		Position = UDim2.new(0,12,0,0),
 		BackgroundTransparency = 1,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -956,13 +956,15 @@ end,
 		PlaceholderText = Placeholder or "Nhập...",
 		TextColor3 = "Text",
 		PlaceholderColor3 = "Muted",
-		Size = UDim2.new(1,-150,1,-8),
-		Position = UDim2.new(1,-138,0,4),
+
+		Size = UDim2.new(1,-120,1,-8), -- kéo dài input
+		Position = UDim2.new(0,105,0,4),
+
 		BackgroundTransparency = 1,
 		TextSize = 13,
 		FontFace = Library.Text.Font,
 		ClearTextOnFocus = false,
-		TextXAlignment = Enum.TextXAlignment.Right,
+		TextXAlignment = Enum.TextXAlignment.Left,
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		Parent = TextBoxBackground
 	})
