@@ -888,6 +888,52 @@ Library.RenderModules = setmetatable({
 		}) 
 		return ButtonContainer
 	end,
+	TextBoxContainer = function()
+		local TextBoxContainer = Utility:Render("TextButton", {  
+			BackgroundTransparency = 1,
+			Text = "",
+			Name = "TextBoxContainer",
+			Size = UDim2.new(1, 0, 0, 36),
+			BorderSizePixel = 0,
+		}) 
+		local TextBoxBackground = Utility:Render("Frame", {  
+			Name = "TextBoxBackground",
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundColor3 = "LightContrastBackground",
+			Parent = TextBoxContainer 
+		}) 
+		Utility:Render("UIStroke", {Color = "BorderInner", Parent = TextBoxBackground})
+		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = TextBoxBackground})
+		Utility:Render("UICorner", {CornerRadius = UDim.new(0, 10), Parent = TextBoxBackground})
+
+		local TitleLabel = Utility:Render("TextLabel", {  
+			Name = "TitleLabel",
+			TextColor3 = "Muted",
+			Size = UDim2.new(0, 200, 1, 0),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 13,
+			FontFace = Library.Text.Font,
+			Parent = TextBoxBackground 
+		})
+
+		local TextBox = Utility:Render("TextBox", {  
+			Name = "TextBox",
+			PlaceholderText = "Nhập văn bản...",
+			Text = "",
+			TextColor3 = "Text",
+			PlaceholderColor3 = "Muted",
+			Size = UDim2.new(1, -16, 1, -8),
+			Position = UDim2.new(0, 8, 0, 4),
+			BackgroundTransparency = 1,
+			TextSize = 13,
+			FontFace = Library.Text.Font,
+			ClearTextOnFocus = false,
+			Parent = TextBoxBackground 
+		})
+
+		return TextBoxContainer
+	end,
 },Library.RenderModules)
 local Tabs = Library.Tabs;
 local Sections = Library.sections;
@@ -1536,5 +1582,28 @@ function Sections:Button(properties)
 		ts:Create(ButtonContainer["ButtonBackground"], TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 	end)
 end
+function Sections:TextBox(properties)
+	properties = properties or {}
+	local TextBoxElement = {
+		Title = properties.Title or "TextBox",
+		Placeholder = properties.Placeholder or "Nhập văn bản...",
+		Value = properties.Value or "",
+		Callback = properties.Callback or function() end
+	}
 
+	local Container = Library.RenderModules:TextBoxContainer()
+	Container.Parent = self.Container
+	Container["TextBoxBackground"]["TitleLabel"].Text = TextBoxElement.Title
+	Container["TextBoxBackground"]["TextBox"].PlaceholderText = TextBoxElement.Placeholder
+	Container["TextBoxBackground"]["TextBox"].Text = TextBoxElement.Value
+
+	Utility:storeEvent(Container["TextBoxBackground"]["TextBox"].Changed, function(prop)
+		if prop == "Text" then
+			TextBoxElement.Value = Container["TextBoxBackground"]["TextBox"].Text
+			TextBoxElement.Callback(TextBoxElement.Value)
+		end
+	end)
+
+	return TextBoxElement
+end
 return Library
