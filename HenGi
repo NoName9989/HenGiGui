@@ -888,7 +888,7 @@ Library.RenderModules = setmetatable({
 		}) 
 		return ButtonContainer
 	end,
-	TextBoxContainer = function()
+		TextBoxContainer = function()
 		local TextBoxContainer = Utility:Render("TextButton", {  
 			BackgroundTransparency = 1,
 			Text = "",
@@ -906,10 +906,12 @@ Library.RenderModules = setmetatable({
 		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = TextBoxBackground})
 		Utility:Render("UICorner", {CornerRadius = UDim.new(0, 10), Parent = TextBoxBackground})
 
+		-- Title lùi vô 12px như bạn muốn
 		local TitleLabel = Utility:Render("TextLabel", {  
 			Name = "TitleLabel",
 			TextColor3 = "Muted",
 			Size = UDim2.new(0, 200, 1, 0),
+			Position = UDim2.new(0, 12, 0, 0),   -- ← LÙI VÔ Ở ĐÂY
 			BackgroundTransparency = 1,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextSize = 13,
@@ -923,8 +925,8 @@ Library.RenderModules = setmetatable({
 			Text = "",
 			TextColor3 = "Text",
 			PlaceholderColor3 = "Muted",
-			Size = UDim2.new(1, -16, 1, -8),
-			Position = UDim2.new(0, 8, 0, 4),
+			Size = UDim2.new(1, -24, 1, -8),
+			Position = UDim2.new(0, 12, 0, 4),
 			BackgroundTransparency = 1,
 			TextSize = 13,
 			FontFace = Library.Text.Font,
