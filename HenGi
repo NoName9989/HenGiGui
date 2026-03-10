@@ -915,53 +915,66 @@ Library.RenderModules = setmetatable({
 
 end,
 		TextBoxContainer = function()
-		local TextBoxContainer = Utility:Render("TextButton", {  
-			BackgroundTransparency = 1,
-			Text = "",
-			Name = "TextBoxContainer",
-			Size = UDim2.new(1, 0, 0, 36),
-			BorderSizePixel = 0,
-		}) 
-		local TextBoxBackground = Utility:Render("Frame", {  
-			Name = "TextBoxBackground",
-			Size = UDim2.new(1, 0, 1, 0),
-			BackgroundColor3 = "LightContrastBackground",
-			Parent = TextBoxContainer 
-		}) 
-		Utility:Render("UIStroke", {Color = "BorderInner", Parent = TextBoxBackground})
-		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = TextBoxBackground})
-		Utility:Render("UICorner", {CornerRadius = UDim.new(0, 10), Parent = TextBoxBackground})
+	local TextBoxContainer = Utility:Render("Frame", {
+		BackgroundTransparency = 1,
+		Name = "TextBoxContainer",
+		Size = UDim2.new(1, 0, 0, 36),
+	})
 
-		-- Title lùi vô 12px như bạn muốn
-		local TitleLabel = Utility:Render("TextLabel", {  
-			Name = "TitleLabel",
-			TextColor3 = "Muted",
-			Size = UDim2.new(0, 200, 1, 0),
-			Position = UDim2.new(0, 12, 0, 0),   -- ← LÙI VÔ Ở ĐÂY
-			BackgroundTransparency = 1,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextSize = 13,
-			FontFace = Library.Text.Font,
-			Parent = TextBoxBackground 
-		})
+	local TextBoxBackground = Utility:Render("Frame", {
+		Name = "TextBoxBackground",
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundColor3 = "LightContrastBackground",
+		Parent = TextBoxContainer
+	})
 
-		local TextBox = Utility:Render("TextBox", {  
-			Name = "TextBox",
-			PlaceholderText = "Nhập văn bản...",
-			Text = "",
-			TextColor3 = "Text",
-			PlaceholderColor3 = "Muted",
-			Size = UDim2.new(1, -24, 1, -8),
-			Position = UDim2.new(0, 12, 0, 4),
-			BackgroundTransparency = 1,
-			TextSize = 13,
-			FontFace = Library.Text.Font,
-			ClearTextOnFocus = false,
-			Parent = TextBoxBackground 
-		})
+	Utility:Render("UIStroke",{Color = "BorderInner",Parent = TextBoxBackground})
+	Utility:Render("UIStroke",{Color = "BorderOuter",Parent = TextBoxBackground})
+	Utility:Render("UICorner",{CornerRadius = UDim.new(0,6),Parent = TextBoxBackground})
 
-		return TextBoxContainer
-	end,
+	Utility:Render("UIPadding",{
+		PaddingLeft = UDim.new(0,10),
+		PaddingRight = UDim.new(0,10),
+		Parent = TextBoxBackground
+	})
+
+	Utility:Render("UIListLayout",{
+		FillDirection = Enum.FillDirection.Horizontal,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0,8),
+		Parent = TextBoxBackground
+	})
+
+	local TitleLabel = Utility:Render("TextLabel",{
+		Name = "TitleLabel",
+		TextColor3 = "Muted",
+		Text = "Title",
+		AutomaticSize = Enum.AutomaticSize.X,
+		Size = UDim2.new(0,0,1,0),
+		BackgroundTransparency = 1,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextSize = 13,
+		FontFace = Library.Text.Font,
+		Parent = TextBoxBackground
+	})
+
+	local TextBox = Utility:Render("TextBox",{
+		Name = "TextBox",
+		PlaceholderText = "Nhập...",
+		Text = "",
+		TextColor3 = "Text",
+		PlaceholderColor3 = "Muted",
+		Size = UDim2.new(1,0,1,-8),
+		TextSize = 13,
+		ClearTextOnFocus = false,
+		TextClipped = true,
+		BackgroundTransparency = 1,
+		FontFace = Library.Text.Font,
+		Parent = TextBoxBackground
+	})
+
+	return TextBoxContainer
+end,
 },Library.RenderModules)
 local Tabs = Library.Tabs;
 local Sections = Library.sections;
