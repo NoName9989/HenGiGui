@@ -1354,7 +1354,7 @@ function Sections:Switch(properties)
 
 		task.spawn(function()
 			ts:Create(switchcontainer["SwitchTitle"],Utility.TweenInfo, {TextColor3 = value and Utility.Theme.Text or Utility.Theme.Muted}):Play()
-			ts:Create(switchcontainer["switchbackground"]["switchslider"],Utility.TweenInfo, {Position = value and   UDim2new(0, 4,0.5,0) or UDim2new(1, -12,0.5,0), BackgroundColor3 = value and Utility.Theme.Accent or Utility.Theme.Muted}):Play()
+			ts:Create(switchcontainer["switchbackground"]["switchslider"],Utility.TweenInfo, {Position = value and UDim2new(1, -12,0.5,0) or UDim2new(0, 4,0.5,0), BackgroundColor3 = value and Utility.Theme.Accent or Utility.Theme.Muted}):Play()
 			self.Value = value
 			self.Callback(value)
 
