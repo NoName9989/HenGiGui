@@ -862,32 +862,40 @@ Library.RenderModules = setmetatable({
 	end,
 
 	ButtonContainer = function()
-		local ButtonContainer = Utility:Render("TextButton", {  
-			BackgroundTransparency = 1,
-			Text = "",
-			Name = "ButtonContainer",
-			Size = UDim2.new(1, 0, 0, 36),
-			BorderSizePixel = 0,
-		}) 
-		local ButtonBackground = Utility:Render("Frame", {  
-			Name = "ButtonBackground",
-			Size = UDim2.new(1, 0, 1, 0),
-			BackgroundColor3 = "LightContrastBackground",
-			Parent = ButtonContainer 
-		}) 
-		Utility:Render("UIStroke", {Color = "BorderInner", Parent = ButtonBackground})
-		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = ButtonBackground})
-		local ButtonTitle = Utility:Render("TextLabel", {  
-			Name = "ButtonTitle",
-			TextColor3 = "Text",
-			Size = UDim2.new(1, 0, 1, 0),
-			BackgroundTransparency = 1,
-			TextSize = 13,
-			FontFace = Library.Text.Font,
-			Parent = ButtonBackground 
-		}) 
-		return ButtonContainer
-	end,
+	local ButtonContainer = Utility:Render("TextButton", {  
+		BackgroundTransparency = 1,
+		Text = "",
+		Name = "ButtonContainer",
+		Size = UDim2.new(1, 0, 0, 36),
+		BorderSizePixel = 0,
+		AutoButtonColor = false
+	}) 
+
+	local ButtonBackground = Utility:Render("Frame", {  
+		Name = "ButtonBackground",
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundColor3 = "LightContrastBackground",
+		Active = false,
+		Parent = ButtonContainer 
+	}) 
+
+	Utility:Render("UICorner",{CornerRadius = UDim.new(0,10),Parent = ButtonBackground})
+	Utility:Render("UIStroke",{Color = "BorderInner",Parent = ButtonBackground})
+	Utility:Render("UIStroke",{Color = "BorderOuter",Parent = ButtonBackground})
+
+	local ButtonTitle = Utility:Render("TextLabel",{  
+		Name = "ButtonTitle",
+		Text = "Button",
+		BackgroundTransparency = 1,
+		TextColor3 = "Text",
+		Size = UDim2.new(1,0,1,0),
+		FontFace = Library.Text.Font,
+		TextSize = 13,
+		Parent = ButtonBackground
+	})
+
+	return ButtonContainer
+end,
 		TextBoxContainer = function()
 		local TextBoxContainer = Utility:Render("TextButton", {  
 			BackgroundTransparency = 1,
@@ -1541,6 +1549,7 @@ function Sections:Dropdown(properties)
 end
 function Sections:Button(properties)
 	properties = properties or {}
+
 	local Button = {
 		Title = properties.Title or "Button",
 		Callback = properties.Callback or function() end
@@ -1548,16 +1557,28 @@ function Sections:Button(properties)
 
 	local ButtonContainer = Library.RenderModules:ButtonContainer()
 	ButtonContainer.Parent = self.Container
-	ButtonContainer["ButtonBackground"]["ButtonTitle"].Text = Button.Title
+	ButtonContainer.ButtonBackground.ButtonTitle.Text = Button.Title
 
-	-- Button đơn giản, chắc chắn hoạt động
-	Utility:storeEvent(ButtonContainer.MouseButton1Down, function()
+	-- Hover effect
+	Utility:storeEvent(ButtonContainer.MouseEnter,function()
+		ButtonContainer.ButtonBackground.BackgroundColor3 = Utility.Theme.DarkContrastBackground
+	end)
+
+	Utility:storeEvent(ButtonContainer.MouseLeave,function()
+		ButtonContainer.ButtonBackground.BackgroundColor3 = Utility.Theme.LightContrastBackground
+	end)
+
+	-- Click
+	Utility:storeEvent(ButtonContainer.MouseButton1Click,function()
+
 		task.spawn(function()
-			-- Hiệu ứng click nhẹ
-			ButtonContainer["ButtonBackground"].BackgroundColor3 = Utility.Theme.Accent
-			task.wait(0.1)
-			ButtonContainer["ButtonBackground"].BackgroundColor3 = Utility.Theme.LightContrastBackground
+			ButtonContainer.ButtonBackground.BackgroundColor3 = Utility.Theme.Accent
+			task.wait(0.12)
+			ButtonContainer.ButtonBackground.BackgroundColor3 = Utility.Theme.DarkContrastBackground
+			task.wait(0.05)
+			ButtonContainer.ButtonBackground.BackgroundColor3 = Utility.Theme.LightContrastBackground
 		end)
+
 		Button.Callback()
 	end)
 end
