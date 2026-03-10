@@ -914,53 +914,79 @@ Library.RenderModules = setmetatable({
 	return ButtonContainer
 
 end,
-			TextBoxContainer = function()
-		local TextBoxContainer = Utility:Render("TextButton", {  
-			BackgroundTransparency = 1,
-			Text = "",
-			Name = "TextBoxContainer",
-			Size = UDim2.new(1, 0, 0, 36),
-			BorderSizePixel = 0,
-		}) 
-		local TextBoxBackground = Utility:Render("Frame", {  
-			Name = "TextBoxBackground",
-			Size = UDim2.new(1, 0, 1, 0),
-			BackgroundColor3 = "LightContrastBackground",
-			Parent = TextBoxContainer 
-		}) 
-		Utility:Render("UIStroke", {Color = "BorderInner", Parent = TextBoxBackground})
-		Utility:Render("UIStroke", {Color = "BorderOuter", Parent = TextBoxBackground})
-		Utility:Render("UICorner", {CornerRadius = UDim.new(0, 10), Parent = TextBoxBackground})
+			TextBoxContainer = function(Name, Placeholder, Callback)
 
-		local TitleLabel = Utility:Render("TextLabel", {  
-			Name = "TitleLabel",
-			TextColor3 = "Muted",
-			Size = UDim2.new(0, 200, 1, 0),
-			Position = UDim2.new(0, 12, 0, 0),   -- title lùi vô
-			BackgroundTransparency = 1,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextSize = 13,
-			FontFace = Library.Text.Font,
-			Parent = TextBoxBackground 
-		})
+	local TextBoxContainer = Utility:Render("TextButton",{
+		BackgroundTransparency = 1,
+		Text = "",
+		Name = "TextBoxContainer",
+		Size = UDim2.new(1,0,0,36),
+		BorderSizePixel = 0
+	})
 
-		local TextBox = Utility:Render("TextBox", {  
-			Name = "TextBox",
-			PlaceholderText = "Nhập số...",
-			Text = "",
-			TextColor3 = "Text",
-			PlaceholderColor3 = "Muted",
-			Size = UDim2.new(1, -24, 1, -8),
-			Position = UDim2.new(0, 12, 0, 4),
-			BackgroundTransparency = 1,
-			TextSize = 13,
-			FontFace = Library.Text.Font,
-			ClearTextOnFocus = false,
-			Parent = TextBoxBackground 
-		})
+	local TextBoxBackground = Utility:Render("Frame",{
+		Name = "TextBoxBackground",
+		Size = UDim2.new(1,0,1,0),
+		BackgroundColor3 = "LightContrastBackground",
+		Parent = TextBoxContainer
+	})
 
-		return TextBoxContainer
-	end,
+	Utility:Render("UIStroke",{Color = "BorderInner",Parent = TextBoxBackground})
+	Utility:Render("UIStroke",{Color = "BorderOuter",Parent = TextBoxBackground})
+	Utility:Render("UICorner",{CornerRadius = UDim.new(0,10),Parent = TextBoxBackground})
+
+	-- TITLE
+	local TitleLabel = Utility:Render("TextLabel",{
+		Name = "TitleLabel",
+		Text = Name or "Input",
+		TextColor3 = "Muted",
+		Size = UDim2.new(0,120,1,0),
+		Position = UDim2.new(0,12,0,0),
+		BackgroundTransparency = 1,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextSize = 13,
+		FontFace = Library.Text.Font,
+		Parent = TextBoxBackground
+	})
+
+	-- INPUT
+	local TextBox = Utility:Render("TextBox",{
+		Name = "TextBox",
+		Text = "",
+		PlaceholderText = Placeholder or "Nhập...",
+		TextColor3 = "Text",
+		PlaceholderColor3 = "Muted",
+		Size = UDim2.new(1,-150,1,-8),
+		Position = UDim2.new(1,-138,0,4),
+		BackgroundTransparency = 1,
+		TextSize = 13,
+		FontFace = Library.Text.Font,
+		ClearTextOnFocus = false,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		Parent = TextBoxBackground
+	})
+
+	-- CALLBACK
+	TextBox.FocusLost:Connect(function()
+		if Callback then
+			Callback(TextBox.Text)
+		end
+	end)
+
+	-- API
+	local TextboxAPI = {}
+
+	function TextboxAPI:SetValue(v)
+		TextBox.Text = tostring(v)
+	end
+
+	function TextboxAPI:GetValue()
+		return TextBox.Text
+	end
+
+	return TextBoxContainer,TextboxAPI
+end,
 },Library.RenderModules)
 local Tabs = Library.Tabs;
 local Sections = Library.sections;
