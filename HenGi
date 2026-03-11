@@ -1,5 +1,7 @@
 local Services = setmetatable({}, {__index = function(Self, Index)
-	return game:GetService(Index)
+	Library.Flags = {}  -- Lưu {flag = value}
+Library.ConfigPath = Library.Folder .. "config.json"
+return game:GetService(Index)
 end})
 
 -->Services<--
@@ -270,9 +272,16 @@ Library.RenderModules = setmetatable({
 			EasingDirection = Enum.EasingDirection.InOut,
 			Parent = PageContentsContainer 
 		}) 
-		local UIScale = Utility:Render("UIScale", {  
+				local UIScale = Utility:Render("UIScale", {  
 			Parent = Copy 
 		}) 
+
+		Library:LoadConfig()   -- Load config khi GUI khởi tạo (đúng)
+
+		-- Tự động lưu config khi đóng GUI (cách này tốt hơn)
+		Utility:storeEvent(Copy.Destroying, function()
+			Library:SaveConfig()
+		end)
 
 		return Copy
 
@@ -1668,5 +1677,45 @@ function Sections:TextBox(properties)
 	end)
 
 	return TextBoxElement
+end
+
+-- Tạo folder nếu chưa có (nếu executor hỗ trợ)
+local function ensureFolder()
+    if not isfolder or not makefolder then return end
+    if not isfolder(Library.Folder) then
+        makefolder(Library.Folder)
+    end
+end
+
+-- Lưu config
+function Library:SaveConfig()
+    ensureFolder()
+    if not writefile then warn("[HenGi] Executor không hỗ trợ writefile!") return end
+    
+    local data = {}
+    for flag, value in pairs(Library.Flags) do
+        data[flag] = value
+    end
+    
+    pcall(function()
+        writefile(Library.ConfigPath, HttpService:JSONEncode(data))
+        print("[HenGi] Đã lưu config!")
+    end)
+end
+
+-- Load config
+function Library:LoadConfig()
+    if not isfile or not isfile(Library.ConfigPath) then return end
+    
+    local success, data = pcall(function()
+        return HttpService:JSONDecode(readfile(Library.ConfigPath))
+    end)
+    
+    if success and typeof(data) == "table" then
+        for flag, value in pairs(data) do
+            Library.Flags[flag] = value
+        end
+        print("[HenGi] Đã load config!")
+    end
 end
 return Library
