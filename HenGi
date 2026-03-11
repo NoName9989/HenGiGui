@@ -925,81 +925,60 @@ task.delay(0.6, function() Library:ApplyConfig() end)
 	return ButtonContainer
 
 end,
-	TextBoxContainer = function(Name, Placeholder, Callback)
+		TextBoxContainer = function()
+		local TextBoxContainer = Utility:Render("TextButton",{
+			BackgroundTransparency = 1,
+			Text = "",
+			Name = "TextBoxContainer",
+			Size = UDim2.new(1,0,0,36),
+			BorderSizePixel = 0
+		})
 
-	local TextBoxContainer = Utility:Render("TextButton",{
-		BackgroundTransparency = 1,
-		Text = "",
-		Name = "TextBoxContainer",
-		Size = UDim2.new(1,0,0,36),
-		BorderSizePixel = 0
-	})
+		local TextBoxBackground = Utility:Render("Frame",{
+			Name = "TextBoxBackground",
+			Size = UDim2.new(1,0,1,0),
+			BackgroundColor3 = "LightContrastBackground",
+			Parent = TextBoxContainer
+		})
 
-	local TextBoxBackground = Utility:Render("Frame",{
-		Name = "TextBoxBackground",
-		Size = UDim2.new(1,0,1,0),
-		BackgroundColor3 = "LightContrastBackground",
-		Parent = TextBoxContainer
-	})
+		Utility:Render("UIStroke",{Color = "BorderInner",Parent = TextBoxBackground})
+		Utility:Render("UIStroke",{Color = "BorderOuter",Parent = TextBoxBackground})
+		Utility:Render("UICorner",{CornerRadius = UDim.new(0,10),Parent = TextBoxBackground})
 
-	Utility:Render("UIStroke",{Color = "BorderInner",Parent = TextBoxBackground})
-	Utility:Render("UIStroke",{Color = "BorderOuter",Parent = TextBoxBackground})
-	Utility:Render("UICorner",{CornerRadius = UDim.new(0,10),Parent = TextBoxBackground})
+		-- TITLE
+		local TitleLabel = Utility:Render("TextLabel",{
+			Name = "TitleLabel",
+			Text = "Input",  -- sẽ bị override sau
+			TextColor3 = "Muted",
+			Size = UDim2.new(0,90,0,16),
+			Position = UDim2.new(0,12,0,10),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 13,
+			FontFace = Library.Text.Font,
+			Parent = TextBoxBackground
+		})
 
-	-- TITLE
-	local TitleLabel = Utility:Render("TextLabel",{
-		Name = "TitleLabel",
-		Text = Name or "Input",
-		TextColor3 = "Muted",
-		Size = UDim2.new(0,90,0,16),
-		Position = UDim2.new(0,12,0,10),
-		BackgroundTransparency = 1,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextSize = 13,
-		FontFace = Library.Text.Font,
-		Parent = TextBoxBackground
-	})
+		-- INPUT
+		local TextBox = Utility:Render("TextBox",{
+			Name = "TextBox",
+			Text = "",
+			PlaceholderText = "Nhập...",
+			TextColor3 = "Text",
+			PlaceholderColor3 = "Muted",
+			Size = UDim2.new(1,-120,1,-8),
+			Position = UDim2.new(0,105,0,4),
+			BackgroundTransparency = 1,
+			TextSize = 13,
+			FontFace = Library.Text.Font,
+			ClearTextOnFocus = false,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Parent = TextBoxBackground
+		})
 
-	-- INPUT
-	local TextBox = Utility:Render("TextBox",{
-		Name = "TextBox",
-		Text = "",
-		PlaceholderText = Placeholder or "Nhập...",
-		TextColor3 = "Text",
-		PlaceholderColor3 = "Muted",
-
-		Size = UDim2.new(1,-120,1,-8), -- kéo dài input
-		Position = UDim2.new(0,105,0,4),
-
-		BackgroundTransparency = 1,
-		TextSize = 13,
-		FontFace = Library.Text.Font,
-		ClearTextOnFocus = false,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextTruncate = Enum.TextTruncate.AtEnd,
-		Parent = TextBoxBackground
-	})
-
-	-- CALLBACK
-	TextBox.FocusLost:Connect(function()
-		if Callback then
-			Callback(TextBox.Text)
-		end
-	end)
-
-	-- API
-	local TextboxAPI = {}
-
-	function TextboxAPI:SetValue(v)
-		TextBox.Text = tostring(v)
-	end
-
-	function TextboxAPI:GetValue()
-		return TextBox.Text
-	end
-
-	return TextBoxContainer,TextboxAPI
-end,
+		return TextBoxContainer  -- ← Chỉ trả về 1 giá trị (đã sạch)
+	end,
 },Library.RenderModules)
 local Tabs = Library.Tabs;
 local Sections = Library.sections;
@@ -1710,25 +1689,23 @@ function Sections:TextBox(properties)
 		Title = properties.Title or "TextBox",
 		Placeholder = properties.Placeholder or "Nhập văn bản...",
 		Value = properties.Value or "",
-		Flag = properties.Flag or properties.flag,   -- ← THÊM DÒNG NÀY
+		Flag = properties.Flag or properties.flag,
 		Callback = properties.Callback or function() end
 	}
 
-	local Container, TextboxAPI = Library.RenderModules:TextBoxContainer()  -- ← Sửa để lấy cả API
+	local Container = Library.RenderModules:TextBoxContainer()
 	Container.Parent = self.Container
+
 	Container["TextBoxBackground"]["TitleLabel"].Text = TextBoxElement.Title
 	Container["TextBoxBackground"]["TextBox"].PlaceholderText = TextBoxElement.Placeholder
 	Container["TextBoxBackground"]["TextBox"].Text = TextBoxElement.Value
 
-	-- ==================== ĐĂNG KÝ FLAG (BẮT BUỘC) ====================
 	Library:RegisterOption(TextBoxElement.Flag, TextBoxElement)
 
-	-- ==================== LẤY GIÁ TRỊ TỪ TEXTBOX ====================
 	Utility:storeEvent(Container["TextBoxBackground"]["TextBox"].Changed, function(prop)
 		if prop == "Text" then
 			TextBoxElement.Value = Container["TextBoxBackground"]["TextBox"].Text
 			
-			-- ==================== LƯU CONFIG TỰ ĐỘNG ====================
 			if TextBoxElement.Flag then
 				Library.Flags[TextBoxElement.Flag] = TextBoxElement.Value
 				Library:SaveConfig()
@@ -1738,12 +1715,10 @@ function Sections:TextBox(properties)
 		end
 	end)
 
-	-- Thêm hàm Set/Get để đồng bộ với các element khác
 	function TextBoxElement:Set(value: string)
 		value = tostring(value or "")
 		Container["TextBoxBackground"]["TextBox"].Text = value
 		self.Value = value
-		
 		if self.Flag then
 			Library.Flags[self.Flag] = value
 			Library:SaveConfig()
