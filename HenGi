@@ -1732,7 +1732,21 @@ function Sections:TextBox(properties)
 
 	return TextBoxElement
 end
-
+-- ==================== LOAD CONFIG (hàm bị thiếu) ====================
+function Library:LoadConfig()
+    if not isfile or not isfile(Library.ConfigPath) then return end
+    
+    local success, data = pcall(function()
+        return HttpService:JSONDecode(readfile(Library.ConfigPath))
+    end)
+    
+    if success and typeof(data) == "table" then
+        for flag, value in pairs(data) do
+            Library.Flags[flag] = value
+        end
+        print("[HenGi] Đã load config thành công!")
+    end
+end
 -- ==================== HỆ THỐNG SAVE CONFIG - PHIÊN BẢN TỐI ƯU ====================
 
 local function ensureFolder()
