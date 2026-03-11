@@ -2,6 +2,9 @@ local Services = setmetatable({}, {__index = function(Self, Index)
 	return game:GetService(Index)
 end})
 
+--local--
+local SaveDebounceThread = nil
+
 -->Services<--
 local Players = Services.Players;
 local UserInputService = Services.UserInputService;
@@ -50,7 +53,8 @@ local Library = {
 		Enum.KeyCode.Right, Enum.KeyCode.Slash, Enum.KeyCode.Tab,
 		Enum.KeyCode.Backspace, Enum.KeyCode.Escape
 	},
-	Flags = {},           -- ← DÙNG ĐỂ LƯU CONFIG (chỉ giữ 1 dòng này)
+	Flags = {},
+    Options = {},
 	Tabs = {},
 	Elements = {},
 	Folder = "Hg hub/", 
@@ -274,7 +278,8 @@ Library.RenderModules = setmetatable({
 			Parent = Copy 
 		}) 
 
-		Library:LoadConfig()   -- Load config khi GUI khởi tạo (đúng)
+		Library:LoadConfig()
+task.delay(0.6, function() Library:ApplyConfig() end)
 
 		-- Tự động lưu config khi đóng GUI (cách này tốt hơn)
 		Utility:storeEvent(Copy.Destroying, function()
@@ -1376,38 +1381,58 @@ function Sections:Switch(properties)
 	local Switch = {
 		Title = properties.title or properties.Title or "Toggle",
 		Value = properties.Value or properties.value or false,
-		Flag = properties.Flag or properties.flag or nil,
+		Flag = properties.Flag or properties.flag,   -- ← giữ nguyên như bạn đang dùng
 		Callback = properties.Callback or properties.callback or function() end
 	}
 	local switchcontainer = Library.RenderModules:SwitchContainer()
 	switchcontainer.Parent = self.Container
 	switchcontainer["SwitchTitle"].Text = Switch.Title
 
+	-- ==================== ĐĂNG KÝ FLAG (BẮT BUỘC) ====================
+	Library:RegisterOption(Switch.Flag, Switch)
+
 	function Switch:Set(value: boolean)
+		value = not not value                     -- đảm bảo luôn là boolean
+		self.Value = value
 
 		task.spawn(function()
-			ts:Create(switchcontainer["SwitchTitle"],Utility.TweenInfo, {TextColor3 = value and Utility.Theme.Text or Utility.Theme.Muted}):Play()
-			ts:Create(switchcontainer["switchbackground"]["switchslider"],Utility.TweenInfo, {Position = value and UDim2new(1, -12,0.5,0) or UDim2new(0, 4,0.5,0), BackgroundColor3 = value and Utility.Theme.Accent or Utility.Theme.Muted}):Play()
-			self.Value = value
-			self.Callback(value)
-
+			ts:Create(switchcontainer["SwitchTitle"], Utility.TweenInfo, {
+				TextColor3 = value and Utility.Theme.Text or Utility.Theme.Muted
+			}):Play()
+			
+			ts:Create(switchcontainer["switchbackground"]["switchslider"], Utility.TweenInfo, {
+				Position = value and UDim2new(1, -12, 0.5, 0) or UDim2new(0, 4, 0.5, 0),
+				BackgroundColor3 = value and Utility.Theme.Accent or Utility.Theme.Muted
+			}):Play()
 		end)
-	end
-	Utility:storeEvent(switchcontainer.MouseButton1Down,function()
 
+		-- ==================== LƯU CONFIG TỰ ĐỘNG ====================
+		if self.Flag then
+			Library.Flags[self.Flag] = value
+			Library:SaveConfig()
+		end
+
+		self.Callback(value)
+	end
+
+	Utility:storeEvent(switchcontainer.MouseButton1Down, function()
 		Switch:Set(not Switch.Value)
 	end)
 
+	-- Set giá trị ban đầu
 	Switch:Set(Switch.Value)
+	return Switch
 end
+
 function Sections:Slider(properties)
 	properties = properties or {}
 	local slider = {
 		Title = properties.Title or properties.title or "Slider",
 		Value = properties.Value or properties.value or 0,
-		Maximum = properties.Max or properties.max or properties.Maximum or properties.maximum or 100,
-		Minimum = properties.Min or properties.min or properties.Minimum or properties.minimum or 0,
+		Maximum = properties.Max or properties.max or 100,
+		Minimum = properties.Min or properties.min or 0,
 		Increment = properties.Increment or properties.increment or 0.5,
+		Flag = properties.Flag or properties.flag,
 		Callback = properties.Callback or properties.callback or function() end,
 		Unit = properties.Unit or properties.unit or properties.Suffix or properties.suffix or "",
 	}
@@ -1416,44 +1441,50 @@ function Sections:Slider(properties)
 	Slidercontainer.Parent = self.Container
 	Slidercontainer["SliderTitle"].Text = slider.Title
 
+	Library:RegisterOption(slider.Flag, slider)
+
 	function slider:Set(val: number)
-
+		val = math.clamp(val, self.Minimum, self.Maximum)
+		self.Value = val
 		Slidercontainer["SlidervalueText"].Text = tostring(val) .. self.Unit
-
-		local Value = (((val - self.Minimum) * (self.Maximum - self.Minimum)) / (self.Maximum - self.Minimum)) + self.Minimum 
-		local percent = 1 - (self.Maximum - val) / (self.Maximum- self.Minimum)
+		local percent = (val - self.Minimum) / (self.Maximum - self.Minimum)
 		ts:Create(Slidercontainer["SliderBackground"]["SliderScale"], Utility.TweenInfo, {Size = UDim2new(percent, 0, 1, 0)}):Play()
-		self.Callback(Value)
+		
+		if self.Flag then
+			Library.Flags[self.Flag] = val
+			Library:SaveConfig()
+		end
+		self.Callback(val)
 	end
 
 	function slider:Move()
 		local BoundingFrame = math.clamp(Mouse.X - Slidercontainer["SliderBackground"]["SliderScale"].AbsolutePosition.X, 0, Slidercontainer["SliderBackground"].AbsoluteSize.X) / Slidercontainer["SliderBackground"].AbsoluteSize.X
 		local Svalue = math.floor((self.Minimum + (self.Maximum - self.Minimum) * BoundingFrame) * self.Increment) / self.Increment
-		Svalue = math.clamp(Svalue, self.Minimum, self.Maximum)
 		self:Set(Svalue)
-
 	end
-	Utility:storeEvent(Slidercontainer.MouseButton1Down,function()
 
+	Utility:storeEvent(Slidercontainer.MouseButton1Down, function()
 		while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
 			task.wait()
 			slider:Move()
 		end
 	end)
-	if slider.Value >= slider.Minimum and  slider.Value <= slider.Maximum then 
 
+	if slider.Value >= slider.Minimum and slider.Value <= slider.Maximum then
 		slider:Set(slider.Value)
-	else 
+	else
 		slider:Set(slider.Minimum)
-	end 
+	end
 	return slider
 end
+
 function Sections:Combo(properties)
 	properties = properties or {}
 	local combo = {
 		Title = properties.Title or "Multi Select",
 		List = properties.List or {"Option 1", "Option 2"},
 		Value = properties.Value or {},           -- Bảng chứa nhiều mục đã chọn
+		Flag = properties.Flag or properties.flag,   -- ← THÊM DÒNG NÀY
 		Callback = properties.Callback or function() end,
 		Opened = false,
 	}
@@ -1461,39 +1492,48 @@ function Sections:Combo(properties)
 	DropdownContainer.Parent = self.Container
 	DropdownContainer["DropdownTitle"].Text = combo.Title
 
+	-- ==================== ĐĂNG KÝ FLAG (BẮT BUỘC) ====================
+	Library:RegisterOption(combo.Flag, combo)
+
 	function combo:UpdateDisplay()
-		DropdownContainer["DropdownBox"]["DropdownValueText"].Text = #combo.Value > 0 and table.concat(combo.Value, ", ") or "None"
+		DropdownContainer["DropdownBox"]["DropdownValueText"].Text = #self.Value > 0 and table.concat(self.Value, ", ") or "None"
 	end
 
 	function combo:SetValue(value)
 		if typeof(value) ~= "table" then value = {value} end
 		
 		for _, v in ipairs(value) do
-			local idx = table.find(combo.Value, v)
+			local idx = table.find(self.Value, v)
 			if idx then
-				table.remove(combo.Value, idx)
+				table.remove(self.Value, idx)
 			else
-				table.insert(combo.Value, v)
+				table.insert(self.Value, v)
 			end
 		end
 
-		combo:UpdateDisplay()
+		self:UpdateDisplay()
 
 		-- Cập nhật màu các option
 		for _, Option in pairs(DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]:GetChildren()) do
 			if Option:IsA("TextButton") then
-				local selected = table.find(combo.Value, Option.Name)
+				local selected = table.find(self.Value, Option.Name)
 				Option.BackgroundTransparency = selected and 0.6 or 1
 				Option["OptionText"].TextColor3 = selected and Utility.Theme.Text or Utility.Theme.Muted
 				Option["Indicator"].BackgroundTransparency = selected and 0 or 1
 			end
 		end
 
-		combo.Callback(combo.Value)
+		self.Callback(self.Value)
+
+		-- ==================== LƯU CONFIG TỰ ĐỘNG ====================
+		if self.Flag then
+			Library.Flags[self.Flag] = self.Value
+			Library:SaveConfig()
+		end
 	end
 
 	function combo:AddOption(NewOption)
-		if not table.find(combo.List, NewOption) then table.insert(combo.List, NewOption) end
+		if not table.find(self.List, NewOption) then table.insert(self.List, NewOption) end
 		local NewOptionButton = Library.RenderModules:OptionButton()
 		NewOptionButton.Parent = DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]
 		NewOptionButton["OptionText"].Text = tostring(NewOption)
@@ -1506,7 +1546,7 @@ function Sections:Combo(properties)
 
 	function combo:ToggleListContainer(bool)
 		DropdownContainer["DropdownBox"]["Anticlick"].Visible = bool
-		combo.Opened = bool
+		self.Opened = bool
 	end
 
 	Utility:storeEvent(DropdownContainer.MouseButton1Down, function()
@@ -1518,7 +1558,7 @@ function Sections:Combo(properties)
 	end
 
 	combo:UpdateDisplay()
-	combo:SetValue(combo.Value)
+	combo:SetValue(combo.Value)   -- Set ban đầu (sẽ tự load config nếu có Flag)
 
 	return combo
 end
@@ -1529,6 +1569,7 @@ function Sections:Dropdown(properties)
 		Title = properties.Title or properties.title or "Dropdown",
 		List = properties.List or properties.list or {"Option 1", "Option 2"},
 		Value = properties.Value or properties.value or "",
+		Flag = properties.Flag or properties.flag,   -- ← THÊM DÒNG NÀY
 		Callback = properties.Callback or properties.callback or function() end,
 		Opened = false,
 	}
@@ -1536,47 +1577,54 @@ function Sections:Dropdown(properties)
 	DropdownContainer.Parent = self.Container
 	DropdownContainer["DropdownTitle"].Text = dropdown.Title
 
+	-- ==================== ĐĂNG KÝ FLAG (BẮT BUỘC) ====================
+	Library:RegisterOption(dropdown.Flag, dropdown)
 
 	function dropdown:SetValue(value: string)
+		value = tostring(value or "")
 		DropdownContainer["DropdownBox"]["DropdownValueText"].Text = value
-		dropdown.Callback(value)
+		self.Value = value
 
-		for _,Option in pairs(DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]:GetChildren()) do 
-			if Option.Name == tostring(value) and Option:IsA("TextButton") then 
+		-- Gọi callback và lưu config tự động
+		self.Callback(value)
+		if self.Flag then
+			Library.Flags[self.Flag] = value
+			Library:SaveConfig()
+		end
+
+		-- Update highlight (giữ nguyên logic đẹp của bạn)
+		for _, Option in pairs(DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]:GetChildren()) do 
+			if Option.Name == value and Option:IsA("TextButton") then 
 				task.spawn(function()
-					dropdown.Value = value
 					ts:Create(Option, Utility.TweenInfo, {BackgroundTransparency = 0.6}):Play()
 					ts:Create(Option["OptionText"], Utility.TweenInfo, {TextColor3 = Utility.Theme.Text, Position = UDim2new(0,13,0,0)}):Play()
 					ts:Create(Option["Indicator"], Utility.TweenInfo, {BackgroundTransparency = 0}):Play()
 					Utility:UpdateObject(Option["OptionText"],"TextColor3",Utility.Theme.Text)
 				end)
-			elseif Option.Name ~= tostring(value) and Option:IsA("TextButton") then
+			elseif Option.Name ~= value and Option:IsA("TextButton") then
 				task.spawn(function()
 					ts:Create(Option, Utility.TweenInfo, {BackgroundTransparency = 1}):Play()
 					ts:Create(Option["OptionText"], Utility.TweenInfo, {TextColor3 = Utility.Theme.Muted, Position = UDim2new(0,10,0,0)}):Play()
 					ts:Create(Option["Indicator"], Utility.TweenInfo, {BackgroundTransparency = 1}):Play()
 					Utility:UpdateObject(Option["OptionText"],"TextColor3",Utility.Theme.Muted)
 				end)
-
 			end
 		end
-
-
 	end
+
 	function dropdown:AddOption(NewOption: string)
 		if typeof(NewOption) == "table" then 
 			NewOption = table.unpack(NewOption) 
 		end 
-		if not table.find(self.List,NewOption) then 
+		if not table.find(self.List, NewOption) then 
 			table.insert(self.List, NewOption)
 		end
 		local NewOptionButton = Library.RenderModules:OptionButton()
 		NewOptionButton.Parent = DropdownContainer["DropdownBox"]["Anticlick"]["ListContainer"]
 		NewOptionButton["OptionText"].Text = tostring(NewOption)
 		NewOptionButton.Name = tostring(NewOption)
-		Utility:storeEvent(NewOptionButton.MouseButton1Click,function()
+		Utility:storeEvent(NewOptionButton.MouseButton1Click, function()
 			dropdown:SetValue(NewOptionButton.Name)
-
 		end)
 	end
 
@@ -1586,15 +1634,19 @@ function Sections:Dropdown(properties)
 			Utility:UpdateObject(DropdownContainer["DropdownTitle"],"TextColor3",bool and Utility.Theme.Text or Utility.Theme.Muted)
 			DropdownContainer["DropdownBox"]["Anticlick"].Visible = bool
 			dropdown.Opened = bool
-
 		end)
 	end
-	Utility:storeEvent(DropdownContainer.MouseButton1Down,function()
+
+	Utility:storeEvent(DropdownContainer.MouseButton1Down, function()
 		dropdown:ToggleListContainer(not dropdown.Opened)
 	end)
-	for i,option in pairs(dropdown.List) do
+
+	-- Thêm các option ban đầu
+	for _, option in pairs(dropdown.List) do
 		dropdown:AddOption(option)
 	end
+
+	-- Set giá trị ban đầu (sẽ tự động load config nếu có Flag)
 	dropdown:SetValue(dropdown.Value)
 	return dropdown
 end
@@ -1658,64 +1710,104 @@ function Sections:TextBox(properties)
 		Title = properties.Title or "TextBox",
 		Placeholder = properties.Placeholder or "Nhập văn bản...",
 		Value = properties.Value or "",
+		Flag = properties.Flag or properties.flag,   -- ← THÊM DÒNG NÀY
 		Callback = properties.Callback or function() end
 	}
 
-	local Container = Library.RenderModules:TextBoxContainer()
+	local Container, TextboxAPI = Library.RenderModules:TextBoxContainer()  -- ← Sửa để lấy cả API
 	Container.Parent = self.Container
 	Container["TextBoxBackground"]["TitleLabel"].Text = TextBoxElement.Title
 	Container["TextBoxBackground"]["TextBox"].PlaceholderText = TextBoxElement.Placeholder
 	Container["TextBoxBackground"]["TextBox"].Text = TextBoxElement.Value
 
+	-- ==================== ĐĂNG KÝ FLAG (BẮT BUỘC) ====================
+	Library:RegisterOption(TextBoxElement.Flag, TextBoxElement)
+
+	-- ==================== LẤY GIÁ TRỊ TỪ TEXTBOX ====================
 	Utility:storeEvent(Container["TextBoxBackground"]["TextBox"].Changed, function(prop)
 		if prop == "Text" then
 			TextBoxElement.Value = Container["TextBoxBackground"]["TextBox"].Text
+			
+			-- ==================== LƯU CONFIG TỰ ĐỘNG ====================
+			if TextBoxElement.Flag then
+				Library.Flags[TextBoxElement.Flag] = TextBoxElement.Value
+				Library:SaveConfig()
+			end
+			
 			TextBoxElement.Callback(TextBoxElement.Value)
 		end
 	end)
 
+	-- Thêm hàm Set/Get để đồng bộ với các element khác
+	function TextBoxElement:Set(value: string)
+		value = tostring(value or "")
+		Container["TextBoxBackground"]["TextBox"].Text = value
+		self.Value = value
+		
+		if self.Flag then
+			Library.Flags[self.Flag] = value
+			Library:SaveConfig()
+		end
+		self.Callback(value)
+	end
+
+	function TextBoxElement:Get()
+		return self.Value
+	end
+
 	return TextBoxElement
 end
 
--- ==================== HỆ THỐNG SAVE CONFIG (đã sửa vị trí) ====================
+-- ==================== HỆ THỐNG SAVE CONFIG - PHIÊN BẢN TỐI ƯU ====================
 
 local function ensureFolder()
-    if not isfolder or not makefolder then return end
-    if not isfolder(Library.Folder) then
-        makefolder(Library.Folder)
-    end
+	if isfolder and makefolder and not isfolder(Library.Folder) then
+		makefolder(Library.Folder)
+	end
 end
 
 function Library:SaveConfig()
-    ensureFolder()
-    if not writefile then 
-        warn("[HenGi] Executor không hỗ trợ writefile!") 
-        return 
-    end
-    
-    local data = {}
-    for flag, value in pairs(Library.Flags) do
-        data[flag] = value
-    end
-    
-    pcall(function()
-        writefile(Library.ConfigPath, HttpService:JSONEncode(data))
-        -- print("[HenGi] Đã lưu config!")
-    end)
+	if SaveDebounceThread then task.cancel(SaveDebounceThread) end
+	
+	SaveDebounceThread = task.delay(0.7, function()
+		ensureFolder()
+		if not writefile then 
+			warn("[HenGi] Executor không hỗ trợ writefile!") 
+			return 
+		end
+		
+		local data = {}
+		for flag, value in pairs(Library.Flags) do
+			data[flag] = value
+		end
+		
+		pcall(function()
+			writefile(Library.ConfigPath, HttpService:JSONEncode(data))
+			-- print("[HenGi] Config đã lưu!")
+		end)
+	end)
 end
 
-function Library:LoadConfig()
-    if not isfile or not isfile(Library.ConfigPath) then return end
-    
-    local success, data = pcall(function()
-        return HttpService:JSONDecode(readfile(Library.ConfigPath))
-    end)
-    
-    if success and typeof(data) == "table" then
-        for flag, value in pairs(data) do
-            Library.Flags[flag] = value
-        end
-        print("[HenGi] Đã load config thành công!")
-    end
+function Library:ApplyConfig()
+	for flag, element in pairs(Library.Options) do
+		local saved = Library.Flags[flag]
+		if saved ~= nil and element.Set then
+			task.spawn(element.Set, element, saved)
+		elseif saved ~= nil then
+			element.Value = saved
+		end
+	end
+end
+
+function Library:RegisterOption(flag, element)
+	if not flag then return end
+	Library.Options[flag] = element
+	if Library.Flags[flag] ~= nil then
+		task.delay(0.3, function()  -- Đợi UI render
+			if element.Set then element:Set(Library.Flags[flag]) end
+		end)
+	else
+		Library.Flags[flag] = element.Value
+	end
 end
 return Library
