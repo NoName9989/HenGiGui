@@ -8,8 +8,7 @@ local UserInputService = Services.UserInputService;
 local RunService = Services.RunService;
 local ts = Services.TweenService;
 local HtppService = Services.HttpService;
-
---> dont need these variables anymore, will fix them one day; i am too lazy to do it right now <-- 
+ 
 -->Variables<--
 local localPlayer = Players.LocalPlayer;
 local camera = workspace.CurrentCamera;
@@ -55,7 +54,7 @@ local Library = {
 	Flags = {}, --> stores the modules table
 	Tabs = {}, --> stores tabs
 	Elements = {},
-	Folder = "Qw hub/", --> folder directory 
+	Folder = "Hg hub/", --> folder directory 
 
 	--> text configuration (static) <--
 	Text = {
@@ -999,7 +998,7 @@ Sections.__index = Library.sections
 function Library:Window(properties)
 	properties = properties or {}
 	local window = {
-		Title = properties.Title or properties.title or "Qw hub",
+		Title = properties.Title or properties.title or "Hg hub",
 		Opened = true,
 		Library = self,
 	}
