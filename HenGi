@@ -1782,7 +1782,7 @@ function Library:ApplyConfig()
 		local saved = Library.Flags[flag]
 		if saved == nil then continue end
 		
-		-- Hỗ trợ cả Set và SetValue
+		-- Hỗ trợ cả Set() và SetValue()
 		if typeof(element.Set) == "function" then
 			task.spawn(element.Set, element, saved)
 		elseif typeof(element.SetValue) == "function" then
@@ -1791,8 +1791,8 @@ function Library:ApplyConfig()
 			element.Value = saved
 		end
 	end
+	print("[HenGi] Đã apply config thành công!")
 end
-
 function Library:RegisterOption(flag, element)
 	if not flag then return end
 	Library.Options[flag] = element
