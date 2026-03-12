@@ -1796,9 +1796,18 @@ end
 function Library:RegisterOption(flag, element)
 	if not flag then return end
 	Library.Options[flag] = element
+	
 	if Library.Flags[flag] ~= nil then
-		task.delay(0.3, function()  -- Đợi UI render
-			if element.Set then element:Set(Library.Flags[flag]) end
+		task.delay(0.3, function()  -- Đợi UI render xong
+			local saved = Library.Flags[flag]
+			
+			if typeof(element.Set) == "function" then
+				element:Set(saved)
+			elseif typeof(element.SetValue) == "function" then
+				element:SetValue(saved)
+			elseif element.Value ~= nil then
+				element.Value = saved
+			end
 		end)
 	else
 		Library.Flags[flag] = element.Value
