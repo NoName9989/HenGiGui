@@ -1780,9 +1780,14 @@ end
 function Library:ApplyConfig()
 	for flag, element in pairs(Library.Options) do
 		local saved = Library.Flags[flag]
-		if saved ~= nil and element.Set then
+		if saved == nil then continue end
+		
+		-- Hỗ trợ cả Set và SetValue
+		if typeof(element.Set) == "function" then
 			task.spawn(element.Set, element, saved)
-		elseif saved ~= nil then
+		elseif typeof(element.SetValue) == "function" then
+			task.spawn(element.SetValue, element, saved)
+		elseif element.Value ~= nil then
 			element.Value = saved
 		end
 	end
